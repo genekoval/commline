@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 
-using nova::console::launcher;
+using nova::launcher;
 using std::function;
 using std::string_view;
 

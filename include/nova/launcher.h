@@ -4,7 +4,7 @@
 #include <string>
 #include <string_view>
 
-namespace nova::console {
+namespace nova {
 
     class launcher {
         std::string name;
