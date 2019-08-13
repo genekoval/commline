@@ -28,8 +28,11 @@ static bool parse_args(
     for (auto i = 1u; i < argc; i++) {
         const string arg(argv[i]);
         const regex long_re("^--([^=]+)(?:=(.+))?$");
+        const regex short_re("^-(.+)$");
 
         smatch match;
+
+        // Handle long options.
         if (regex_search(arg, match, long_re)) {
             string key = match[1];
             string value = match[2];
@@ -43,15 +46,40 @@ static bool parse_args(
 
             if (opt.has_arg()) {
                 if (value.empty()) {
-                    cout << "missing option value for: " << key << endl;
+                    cout << "missing value for: " << key << endl;
                     return false;
                 }
 
                 opt.value(value);
             } else if (!value.empty()) {
-                    cout << "option values not required for: " << key << endl;
+                    cout << "values not required for option: " << key << endl;
                     return false;
                 }
+        } else if (regex_search(arg, match, short_re)) {
+            string seq(match[1]);
+
+            auto it = seq.begin();
+            auto end = seq.end();
+
+            while (it != end) {
+                string c(1, *(it++));
+
+                if (!opts.contains(c)) {
+                    cout << "unrecognized option: " << c << endl;
+                    return false;
+                }
+
+                option& opt = opts.get(c);
+
+                if (opt.has_arg()) {
+                    if (it != seq.end() || i + 1 == argc) {
+                        cout << "missing value for: " << c << endl;
+                        return false;
+                    }
+
+                    opt.value(argv[++i]);
+                }
+            }
         }
     }
 

@@ -10,7 +10,7 @@ static auto opts = options{}
     .add(option("h", "hello", true, "a nice greeting"));
 
 void exec(const vector<string> args) {
-    cout << "Hello, " << opts.value("hello").value_or("no one") << "!" << endl;
+    cout << "Hello, " << opts.value("h").value_or("no one") << "!" << endl;
 }
 
 int main(int argc, const char** argv) {
