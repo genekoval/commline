@@ -5,7 +5,6 @@
 #include <string_view>
 
 namespace nova {
-
     class launcher {
         std::string name;
         std::string version;

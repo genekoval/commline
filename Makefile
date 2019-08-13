@@ -1,5 +1,6 @@
-PROJECT = launcher++
-VERSION = 0.1.0
+export PROJECT = launcher++
+export VERSION = 0.1.0
+
 NAMESPACE = nova
 
 BUILD = .
@@ -13,6 +14,8 @@ INCDIR = include
 SRCDIR = src
 OBJDIR = $(BUILD)/obj
 LIBDIR = $(BUILD)/lib
+
+TEST = @$(MAKE) -C test
 
 CC = g++
 CCFLAGS = -I $(INCDIR) -std=gnu++17 -Wall
@@ -32,13 +35,19 @@ $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 
 $(TARGET) : $(OBJ)
 	$(CC) -o $@ -shared $(CCFLAGS) $^
+	@cd $(LIBDIR) && ln -sf $(LIBFILE) $(LIBRARY)
 
-.PHONY: all clean dir install version
+.PHONY: all clean cleanall cleantest dir install test version
 
 all : dir $(TARGET)
 
 clean :
 	rm -rf $(OBJDIR) $(LIBDIR)
+
+cleanall : clean cleantest
+
+cleantest :
+	$(TEST) clean
 
 dir :
 	@mkdir -p $(OBJDIR) $(LIBDIR)
@@ -50,6 +59,9 @@ install :
 	@echo INSTALL $(PREFIX)/$(TARGET)
 	@cp $(TARGET) $(PREFIX)/$(LIBDIR)
 	@cd $(PREFIX)/$(LIBDIR) && ln -sf $(LIBFILE) $(LIBRARY)
+
+test :
+	$(TEST) run
 
 version :
 	@echo Project: $(PROJECT)
