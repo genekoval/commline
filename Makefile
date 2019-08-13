@@ -22,7 +22,7 @@ ifeq ($(DIST),false)
 endif
 
 SRC := $(wildcard $(SRCDIR)/*.cpp)
-OBJ := $(patsubst $(SRCDIR)%.cpp, $(OBJDIR)/%.o, $(SRC))
+OBJ := $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SRC))
 TARGET = $(LIBDIR)/$(LIBFILE)
 HINSTALL = $(INCDIR)/$(NAMESPACE)
 HEADERS = $(wildcard $(HINSTALL)/*.h)
