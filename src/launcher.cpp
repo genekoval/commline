@@ -18,6 +18,9 @@ launcher::launcher(string_view name, string_view version) :
 {}
 
 int launcher::start(const function<void()>& exec) {
+    cout << "Project: " << name << endl;
+    cout << "Version: " << version << endl;
+
     try {
         exec();
     } catch (const exception& ex) {

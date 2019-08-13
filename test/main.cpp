@@ -9,7 +9,7 @@ using std::endl;
 using std::runtime_error;
 
 int main() {
-    launcher program("launcher test", "0.0.0");
+    launcher program(PROJECT, VERSION);
 
     return program.start([]() {
         throw runtime_error("A test error.");
