@@ -3,16 +3,17 @@
 #include <iostream>
 #include <stdexcept>
 
-using nova::launcher;
-using std::cout;
-using std::endl;
-using std::runtime_error;
+using namespace nova::cli;
+using namespace std;
 
-int exec() {
-    cout << "Running test program." << endl;
-    throw runtime_error("A test error.");
+static auto opts = options{}
+    .add(option("h", "hello", true, "a nice greeting"));
+
+void exec(const vector<string> args) {
+    cout << "Hello, " << opts.value("hello").value_or("no one") << "!" << endl;
 }
 
-int main() {
-    return launcher(PROJECT, VERSION).start(exec);
+int main(int argc, const char** argv) {
+    return launcher(PROJECT, VERSION)
+        .start(opts, argc, argv, exec);
 }

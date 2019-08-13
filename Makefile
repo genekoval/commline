@@ -60,6 +60,7 @@ install :
 	@cp $(TARGET) $(PREFIX)/$(LIBDIR)
 	@cd $(PREFIX)/$(LIBDIR) && ln -sf $(LIBFILE) $(LIBRARY)
 
+export ARGS # Arguments to pass to the test program.
 test :
 	$(TEST) run
 

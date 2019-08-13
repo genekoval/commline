@@ -21,4 +21,4 @@ clean:
 	rm -rf $(BINDIR)
 
 run: $(TARGET)
-	@$<
+	$< $(ARGS)

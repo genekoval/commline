@@ -5,17 +5,9 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
-namespace nova {
-    class launcher {
-        std::string name;
-        std::string version;
-    public:
-        launcher(std::string_view name, std::string_view version);
-
-        int start(const std::function<void()>& exec);
-    };
-
+namespace nova::cli {
     class option {
         std::string m_description;
         bool m_has_arg;
@@ -41,12 +33,30 @@ namespace nova {
         std::string long_opt();
         std::string opt();
         std::string value();
+        void value(std::string_view val);
     };
 
     class options {
         std::unordered_map<std::string,option> opt_map;
     public:
-        options add(option opt);
-        std::optional<std::string> value(std::string_view opt);
+        options& add(option opt);
+        bool contains(const std::string& opt);
+        option& get(const std::string& opt);
+        std::optional<std::string> value(const std::string& opt);
+    };
+
+    class launcher {
+        std::vector<std::string> args;
+        std::string name;
+        std::string version;
+    public:
+        launcher(std::string_view name, std::string_view version);
+
+        int start(
+            options& opts,
+            unsigned int argc,
+            const char** argv,
+            const std::function<void(const std::vector<std::string>&)>& exec
+        );
     };
 }
