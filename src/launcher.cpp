@@ -1,5 +1,5 @@
 #include <nova/cli.h>
-#include <nova/logger.h>
+#include <nova/color.h>
 
 #include <cstdlib>
 #include <exception>
@@ -83,7 +83,14 @@ int launcher::start(
         exec(args);
         return EXIT_SUCCESS;
     } catch (const cli_error& ex) {
-        cout << "error: " << ex.what() << endl;
+        using namespace nova::termcolor;
+
+        cout
+            << set(format::bold, color::red)
+            << "error: "
+            << reset()
+            << ex.what()
+            << endl;
     } catch (const exception& ex) {
         cout << "Error: " << ex.what() << endl;
         cout << "program returned " << EXIT_FAILURE << endl;
