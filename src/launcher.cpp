@@ -6,6 +6,7 @@
 #include <iostream>
 #include <regex>
 
+using nova::cli::cli_error;
 using nova::cli::launcher;
 using nova::cli::option;
 using nova::cli::options;
@@ -15,12 +16,15 @@ using std::exception;
 using std::function;
 using std::regex;
 using std::regex_search;
+using std::runtime_error;
 using std::smatch;
 using std::string;
 using std::string_view;
 using std::vector;
 
-static bool parse_args(
+cli_error::cli_error(const string& message) : runtime_error(message) {}
+
+static void parse_args(
     options& opts,
     unsigned int argc,
     const char** argv
@@ -36,25 +40,13 @@ static bool parse_args(
         if (regex_search(arg, match, long_re)) {
             string key = match[1];
             string value = match[2];
-
-            if (!opts.contains(key)) {
-                cout << "unrecognized option: " << key << endl;
-                return false;
-            }
-
             option& opt = opts.get(key);
 
             if (opt.has_arg()) {
-                if (value.empty()) {
-                    cout << "missing value for: " << key << endl;
-                    return false;
-                }
-
+                if (value.empty()) throw cli_error("missing value for: " + key);
                 opt.value(value);
-            } else if (!value.empty()) {
-                    cout << "values not required for option: " << key << endl;
-                    return false;
-                }
+            } else if (!value.empty())
+                    throw cli_error("values not required for option: " + key);
         } else if (regex_search(arg, match, short_re)) {
             string seq(match[1]);
 
@@ -63,27 +55,16 @@ static bool parse_args(
 
             while (it != end) {
                 string c(1, *(it++));
-
-                if (!opts.contains(c)) {
-                    cout << "unrecognized option: " << c << endl;
-                    return false;
-                }
-
                 option& opt = opts.get(c);
 
                 if (opt.has_arg()) {
-                    if (it != seq.end() || i + 1 == argc) {
-                        cout << "missing value for: " << c << endl;
-                        return false;
-                    }
-
+                    if (it != seq.end() || i + 1 == argc)
+                        throw cli_error("missing value for: " + c);
                     opt.value(argv[++i]);
                 }
             }
         }
     }
-
-    return true;
 }
 
 launcher::launcher(string_view name, string_view version) :
@@ -97,15 +78,16 @@ int launcher::start(
     const char** argv,
     const function<void(const vector<string>&)>& exec
 ) {
-    if (!parse_args(opts, argc, argv)) return EXIT_FAILURE;
-
     try {
+        parse_args(opts, argc, argv);
         exec(args);
+        return EXIT_SUCCESS;
+    } catch (const cli_error& ex) {
+        cout << "error: " << ex.what() << endl;
     } catch (const exception& ex) {
         cout << "Error: " << ex.what() << endl;
         cout << "program returned " << EXIT_FAILURE << endl;
-        return EXIT_FAILURE;
     }
 
-    return EXIT_SUCCESS;
+    return EXIT_FAILURE;
 }

@@ -1,13 +1,18 @@
 #pragma once
 
-#include <functional> // std::function
-#include <optional> // std::optional
-#include <string> // std::string
-#include <string_view> // std::string_view
-#include <unordered_map> // std::unordered_map
-#include <vector> // std::vector
+#include <functional> // function
+#include <optional> // optional
+#include <stdexcept> // runtime_error
+#include <string> // string
+#include <string_view> // string_view
+#include <unordered_map> // unordered_map
+#include <vector> // vector
 
 namespace nova::cli {
+    struct cli_error : std::runtime_error {
+        cli_error(const std::string& message);
+    };
+
     class option {
         std::string m_description;
         bool m_has_arg;
@@ -41,7 +46,6 @@ namespace nova::cli {
         std::vector<option> opts;
     public:
         options& add(option&& opt);
-        bool contains(const std::string& opt);
         option& get(const std::string& opt);
         std::optional<std::string> value(const std::string& opt);
     };

@@ -2,6 +2,7 @@
 
 #include <utility> // std::move
 
+using nova::cli::cli_error;
 using nova::cli::option;
 using nova::cli::options;
 using std::optional;
@@ -54,11 +55,8 @@ options& options::add(option&& opt) {
     return *this;
 }
 
-bool options::contains(const string& opt) {
-    return opt_map.count(opt) > 0;
-}
-
 option& options::get(const string& opt) {
+    if (!opt_map.count(opt)) throw cli_error("unrecognized option: " + opt);
     return *(opt_map.at(opt));
 }
 
