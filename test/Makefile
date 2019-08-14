@@ -1,7 +1,7 @@
 BINDIR = bin
 
 CC = g++
-CCFLAGS = -std=gnu++17 -Wall \
+CCFLAGS = -std=gnu++17 -Wall -g \
 	-D PROJECT=\"$(PROJECT)\" -D VERSION=\"$(VERSION)\" \
 	-I ../include -I $(DEVROOT)/include \
 	-L../lib -Wl,-rpath=../lib \

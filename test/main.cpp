@@ -9,11 +9,14 @@ using namespace std;
 static auto opts = options{}
     .add(option("h", "hello", true, "a nice greeting"));
 
-void exec(const vector<string> args) {
+void program(const launcher& runner) {
     cout << "Hello, " << opts.value("h").value_or("no one") << "!" << endl;
+
+    for (const auto& arg : runner.args())
+        cout << "You gave me: " << arg << endl;
 }
 
 int main(int argc, const char** argv) {
-    return launcher(PROJECT, VERSION)
-        .start(opts, argc, argv, exec);
+    return launcher(PROJECT, VERSION, opts)
+        .start(argc, argv, program);
 }

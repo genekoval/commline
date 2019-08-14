@@ -21,7 +21,7 @@ CC = g++
 CCFLAGS = -I $(INCDIR) -std=gnu++17 -Wall
 
 ifeq ($(DIST),false)
-	CCFLAGS += -I $(DEVROOT)/include
+	CCFLAGS += -I $(DEVROOT)/include -g
 endif
 
 SRC := $(wildcard $(SRCDIR)/*.cpp)

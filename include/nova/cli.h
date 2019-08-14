@@ -9,11 +9,24 @@
 #include <vector> // vector
 
 namespace nova::cli {
+    class launcher;
+    class options;
+
+    using exec = std::function<void(const launcher&)>;
+
     struct cli_error : std::runtime_error {
         cli_error(const std::string& message);
     };
 
     class option {
+    friend
+        void parse_cli(
+            unsigned int argc,
+            const char** argv,
+            options& opts,
+            std::vector<std::string>& args
+        );
+
         std::string m_description;
         bool m_has_arg;
         std::string m_long_opt;
@@ -38,7 +51,6 @@ namespace nova::cli {
         std::string long_opt();
         std::string opt();
         std::string value();
-        void value(std::string_view val);
     };
 
     class options {
@@ -50,19 +62,23 @@ namespace nova::cli {
         std::optional<std::string> value(const std::string& opt);
     };
 
+    void parse_cli(
+        unsigned int argc,
+        const char** argv,
+        options& opts,
+        std::vector<std::string>& args
+    );
+
     class launcher {
-        std::vector<std::string> args;
+        std::vector<std::string> m_args;
         std::string name;
+        options opts;
         std::string version;
     public:
-        launcher(std::string_view name, std::string_view version);
+        launcher(std::string_view name, std::string_view version, options& opts);
 
+        const std::vector<std::string>& args() const;
         void print_error(std::string_view text);
-        int start(
-            options& opts,
-            unsigned int argc,
-            const char** argv,
-            const std::function<void(const std::vector<std::string>&)>& exec
-        );
+        int start(unsigned int argc, const char** argv, const exec& program);
     };
 }

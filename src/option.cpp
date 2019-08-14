@@ -1,13 +1,21 @@
 #include <nova/cli.h>
 
+#include <regex>
 #include <utility> // std::move
 
 using nova::cli::cli_error;
 using nova::cli::option;
 using nova::cli::options;
 using std::optional;
+using std::regex;
+using std::regex_search;
+using std::smatch;
 using std::string;
 using std::string_view;
+using std::vector;
+
+static const regex long_re("^--([^=]+)(?:=(.+))?$");
+static const regex short_re("^-(.+)$");
 
 option::option(string_view opt, string_view description) :
     m_description(description),
@@ -42,8 +50,6 @@ string option::opt() { return m_opt; }
 
 string option::value() { return m_value; }
 
-void option::value(string_view val) { m_value = val; }
-
 options& options::add(option&& opt) {
     opts.push_back(std::move(opt));
     option& opt_ref = opts.back();
@@ -66,4 +72,45 @@ optional<string> options::value(const string& opt) {
 
     if (selected->value().empty()) return {};
     return selected->value();
+}
+
+void nova::cli::parse_cli(
+    unsigned int argc,
+    const char** argv,
+    options& opts,
+    vector<string>& args
+) {
+    for (auto i = 1u; i < argc; i++) {
+        const string arg(argv[i]);
+        smatch match;
+
+        // Handle long options.
+        if (regex_search(arg, match, long_re)) {
+            string key = match[1];
+            string value = match[2];
+            option& opt = opts.get(key);
+
+            if (opt.has_arg()) {
+                if (value.empty()) throw cli_error("missing value for: " + key);
+                opt.m_value = value;
+            } else if (!value.empty())
+                throw cli_error("values not required for option: " + key);
+        } else if (regex_search(arg, match, short_re)) {
+            string seq(match[1]);
+
+            auto it = seq.begin();
+            auto end = seq.end();
+
+            while (it != end) {
+                string c(1, *(it++));
+                option& opt = opts.get(c);
+
+                if (opt.has_arg()) {
+                    if (it != seq.end() || i + 1 == argc)
+                        throw cli_error("missing value for: " + c);
+                    opt.m_value = argv[++i];
+                }
+            }
+        } else args.push_back(arg);
+    }
 }
