@@ -1,4 +1,4 @@
-export PROJECT = launcher++
+export PROJECT = cli++
 export VERSION = 0.1.0
 
 NAMESPACE = nova

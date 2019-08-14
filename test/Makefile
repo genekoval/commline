@@ -7,7 +7,7 @@ CCFLAGS = -std=gnu++17 -Wall \
 	-L../lib -Wl,-rpath=../lib \
 	-L$(DEVROOT)/lib -Wl,-rpath=$(DEVROOT)/lib
 
-LDLIBS = -llauncher++
+LDLIBS = -l$(PROJECT)
 
 TARGET = $(BINDIR)/$(PROJECT).$(VERSION).test
 
