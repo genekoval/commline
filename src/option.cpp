@@ -45,7 +45,7 @@ void option::value(string_view val) { m_value = val; }
 
 options& options::add(option&& opt) {
     opts.push_back(std::move(opt));
-    const option& opt_ref = opts.back();
+    option& opt_ref = opts.back();
 
     opt_map.insert({opt_ref.opt(), &opt_ref});
     if (!opt_ref.long_opt().empty())
