@@ -1,5 +1,7 @@
 #include <nova/cli.h>
 
+#include <utility> // std::move
+
 using nova::cli::option;
 using nova::cli::options;
 using std::optional;
@@ -41,9 +43,13 @@ string option::value() { return m_value; }
 
 void option::value(string_view val) { m_value = val; }
 
-options& options::add(option opt) {
-    opt_map.insert({opt.opt(), opt});
-    if (!opt.long_opt().empty()) opt_map.insert({opt.long_opt(), opt});
+options& options::add(option&& opt) {
+    opts.push_back(std::move(opt));
+    const option& opt_ref = opts.back();
+
+    opt_map.insert({opt_ref.opt(), &opt_ref});
+    if (!opt_ref.long_opt().empty())
+        opt_map.insert({opt_ref.long_opt(), &opt_ref});
 
     return *this;
 }
@@ -53,13 +59,13 @@ bool options::contains(const string& opt) {
 }
 
 option& options::get(const string& opt) {
-    return opt_map.at(opt);
+    return *(opt_map.at(opt));
 }
 
 optional<string> options::value(const string& opt) {
     if (!opt_map.count(opt)) return {};
-    auto selected = opt_map.at(opt);
+    auto* selected = opt_map.at(opt);
 
-    if (selected.value().empty()) return {};
-    return selected.value();
+    if (selected->value().empty()) return {};
+    return selected->value();
 }

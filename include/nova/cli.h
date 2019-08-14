@@ -1,11 +1,11 @@
 #pragma once
 
-#include <functional>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <vector>
+#include <functional> // std::function
+#include <optional> // std::optional
+#include <string> // std::string
+#include <string_view> // std::string_view
+#include <unordered_map> // std::unordered_map
+#include <vector> // std::vector
 
 namespace nova::cli {
     class option {
@@ -37,9 +37,10 @@ namespace nova::cli {
     };
 
     class options {
-        std::unordered_map<std::string,option> opt_map;
+        std::unordered_map<std::string,option*> opt_map;
+        std::vector<option> opts;
     public:
-        options& add(option opt);
+        options& add(option&& opt);
         bool contains(const std::string& opt);
         option& get(const std::string& opt);
         std::optional<std::string> value(const std::string& opt);
