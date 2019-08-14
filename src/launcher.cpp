@@ -72,6 +72,17 @@ launcher::launcher(string_view name, string_view version) :
     version(version)
 {}
 
+void launcher::print_error(string_view text) {
+    using namespace nova::termcolor;
+
+    cout
+        << set(format::bold, color::red)
+        << "error: "
+        << reset()
+        << text
+        << endl;
+}
+
 int launcher::start(
     options& opts,
     unsigned int argc,
@@ -81,16 +92,10 @@ int launcher::start(
     try {
         parse_args(opts, argc, argv);
         exec(args);
+
         return EXIT_SUCCESS;
     } catch (const cli_error& ex) {
-        using namespace nova::termcolor;
-
-        cout
-            << set(format::bold, color::red)
-            << "error: "
-            << reset()
-            << ex.what()
-            << endl;
+        print_error(ex.what());
     } catch (const exception& ex) {
         cout << "Error: " << ex.what() << endl;
         cout << "program returned " << EXIT_FAILURE << endl;

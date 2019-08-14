@@ -57,6 +57,7 @@ namespace nova::cli {
     public:
         launcher(std::string_view name, std::string_view version);
 
+        void print_error(std::string_view text);
         int start(
             options& opts,
             unsigned int argc,
