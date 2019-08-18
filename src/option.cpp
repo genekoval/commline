@@ -62,7 +62,7 @@ options& options::add(option&& opt) {
 }
 
 option& options::get(const string& opt) {
-    if (!opt_map.count(opt)) throw cli_error("unrecognized option: " + opt);
+    if (!opt_map.count(opt)) throw cli_error("unknown option: " + opt);
     return *(opt_map.at(opt));
 }
 
