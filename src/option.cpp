@@ -1,11 +1,11 @@
 #include <nova/cli.h>
 
-#include <regex>
-#include <utility> // std::move
+#include <regex> // regex regex_search
 
 using nova::cli::cli_error;
 using nova::cli::option;
-using nova::cli::options;
+using nova::cli::option_table;
+using std::initializer_list;
 using std::optional;
 using std::regex;
 using std::regex_search;
@@ -20,16 +20,19 @@ static const regex short_re("^-(.+)$");
 option::option(string_view opt, string_view description) :
     m_description(description),
     m_has_arg(false),
-    m_opt(opt)
+    m_opt(opt),
+    m_selected(false)
 {}
 
 option::option(string_view opt, bool has_arg, string_view description) :
     m_description(description),
     m_has_arg(has_arg),
-    m_opt(opt)
+    m_opt(opt),
+    m_selected(false)
 {}
 
-option::option(string_view opt,
+option::option(
+    string_view opt,
     string_view long_opt,
     bool has_arg,
     string_view description
@@ -37,54 +40,65 @@ option::option(string_view opt,
     m_description(description),
     m_has_arg(has_arg),
     m_long_opt(long_opt),
-    m_opt(opt)
+    m_opt(opt),
+    m_selected(false)
 {}
 
-string option::description() { return m_description; }
+string option::description() const { return m_description; }
 
-bool option::has_arg() { return m_has_arg; }
+bool option::has_arg() const { return m_has_arg; }
 
-string option::long_opt() { return m_long_opt; }
+string option::long_opt() const { return m_long_opt; }
 
-string option::opt() { return m_opt; }
+string option::opt() const { return m_opt; }
 
-string option::value() { return m_value; }
+bool option::selected() const { return m_selected; }
 
-options& options::add(option&& opt) {
-    opts.push_back(std::move(opt));
-    option& opt_ref = opts.back();
+string option::value() const { return m_value; }
 
-    opt_map.insert({opt_ref.opt(), &opt_ref});
-    if (!opt_ref.long_opt().empty())
-        opt_map.insert({opt_ref.long_opt(), &opt_ref});
-
-    return *this;
+void option::value(string_view val) {
+    m_value = val;
+    m_selected = true;
 }
 
-option& options::get(const string& opt) {
-    if (!opt_map.count(opt)) throw cli_error("unknown option: " + opt);
-    return *(opt_map.at(opt));
+option_table::option_table(initializer_list<option> option_list) :
+    opts(option_list)
+{
+    for (auto& opt : opts) {
+        opt_map.insert({opt.opt(), &opt});
+        if (!opt.long_opt().empty()) opt_map.insert({opt.long_opt(), &opt});
+    }
 }
 
-optional<string> options::value(const string& opt) {
-    if (!opt_map.count(opt)) return {};
-    auto* selected = opt_map.at(opt);
+option& option_table::get(const string& key) {
+    if (!opt_map.count(key)) throw cli_error("unknown option: " + key);
+    return *(opt_map.at(key));
+}
 
-    if (selected->value().empty()) return {};
-    return selected->value();
+bool option_table::selected(const string& key) const {
+    if (!opt_map.count(key)) return false;
+    return opt_map.at(key)->selected();
+}
+
+optional<string> option_table::value(const string& key) const {
+    if (!opt_map.count(key)) return {};
+
+    auto* opt = opt_map.at(key);
+    if (opt->value().empty()) return {};
+
+    return opt->value();
 }
 
 void nova::cli::parse_cli(
     unsigned int argc,
     const char** argv,
-    options& opts,
+    option_table& opts,
     vector<string>& args
 ) {
     for (auto i = 1u; i < argc; i++) {
         const string arg(argv[i]);
         smatch match;
 
-        // Handle long options.
         if (regex_search(arg, match, long_re)) {
             string key = match[1];
             string value = match[2];
@@ -92,10 +106,13 @@ void nova::cli::parse_cli(
 
             if (opt.has_arg()) {
                 if (value.empty()) throw cli_error("missing value for: " + key);
-                opt.m_value = value;
-            } else if (!value.empty())
+                opt.value(value);
+            }
+            else if (!value.empty())
                 throw cli_error("values not required for option: " + key);
-        } else if (regex_search(arg, match, short_re)) {
+            else opt.m_selected = true;
+        }
+        else if (regex_search(arg, match, short_re)) {
             string seq(match[1]);
 
             auto it = seq.begin();
@@ -108,9 +125,11 @@ void nova::cli::parse_cli(
                 if (opt.has_arg()) {
                     if (it != seq.end() || i + 1 == argc)
                         throw cli_error("missing value for: " + c);
-                    opt.m_value = argv[++i];
+                    opt.value(argv[++i]);
                 }
+                else opt.m_selected = true;
             }
-        } else args.push_back(arg);
+        }
+        else args.push_back(arg);
     }
 }
