@@ -64,10 +64,17 @@ void option::value(string_view val) {
 option_table::option_table(initializer_list<option> option_list) :
     opts(option_list)
 {
-    for (auto& opt : opts) {
-        opt_map.insert({opt.opt(), &opt});
-        if (!opt.long_opt().empty()) opt_map.insert({opt.long_opt(), &opt});
-    }
+    for (auto& opt : opts) add_to_map(&opt);
+}
+
+void option_table::add(const option& opt) {
+    opts.push_back(opt);
+    add_to_map(&opts.back());
+}
+
+void option_table::add_to_map(option* opt) {
+    for (auto& key : {opt->opt(), opt->long_opt()})
+        if (!key.empty()) opt_map.insert({key, opt});
 }
 
 option& option_table::get(const string& key) {

@@ -70,10 +70,12 @@ namespace nova::cli {
         std::vector<option> opts;
         std::unordered_map<std::string,option*> opt_map;
 
+        void add_to_map(option* opt);
         option& get(const std::string& key);
     public:
         option_table(std::initializer_list<option> option_list);
 
+        void add(const option& opt);
         bool selected(const std::string& key) const;
         std::optional<std::string> value(const std::string& key) const;
     };
@@ -90,6 +92,8 @@ namespace nova::cli {
         std::string name;
         option_table opts;
         std::string version;
+
+        void print_version() const;
     public:
         launcher(
             std::string_view name,
