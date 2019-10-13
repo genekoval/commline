@@ -22,7 +22,7 @@ void program(const launcher& runner) {
 }
 
 int main(int argc, const char** argv) {
-    return launcher(PROJECT, VERSION, {
+    return launcher("sample", "0.1.0", {
         option("h", "hello", true, "a nice greeting"),
         option("d", "daemon", false, "run the process as a daemon")
     }).start(argc, argv, program);
