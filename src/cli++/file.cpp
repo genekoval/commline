@@ -1,6 +1,6 @@
 #include "file.h"
 
-#include "../../resources/resources.h"
+#include <resources.h>
 
 std::string get_file() {
     return std::string(
