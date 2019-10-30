@@ -1,11 +1,10 @@
 project = cli++
 version = 0.1.0
 
-targets = cli++ sample
+libcli++.type = shared
 
-cli++.type = shared
-
-sample.type = executable
-sample.libs = color++ cli++
+cli++.type = executable
+cli++.libs = color++ cli++
+cli++.deps = libcli++
 
 include base.mk
