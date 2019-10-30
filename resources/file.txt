@@ -1,0 +1,7 @@
+Hello, this is a resource file.
+
+...
+...
+
+This is another line!
+Hello again!
