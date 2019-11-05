@@ -5,6 +5,6 @@ libcli++.type = shared
 
 cli++.type = executable
 cli++.libs = color++ cli++
-cli++.deps = libcli++ resources
+cli++.deps = libcli++
 
 include ../makefiles/include/base.mk
