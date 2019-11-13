@@ -13,8 +13,6 @@ namespace nova::cli {
     class launcher;
     class option_table;
 
-    using exec = std::function<void(const launcher&)>;
-
     struct cli_error : std::runtime_error {
         cli_error(const std::string& message);
     };
@@ -104,6 +102,8 @@ namespace nova::cli {
         const std::vector<std::string>& args() const;
         const option_table& options() const;
         void print_error(std::string_view text) const;
-        int start(unsigned int argc, const char** argv, const exec& program);
+        int start(unsigned int argc, const char** argv);
     };
+
+    void start(const launcher&);
 }

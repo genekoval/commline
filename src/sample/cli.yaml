@@ -1,0 +1,10 @@
+options:
+
+  - flag: h
+    long: hello
+    type: string
+    description: A nice greeting
+
+  - flag: d
+    long: daemon
+    description: Run the process as a daemon

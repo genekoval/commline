@@ -7,7 +7,6 @@
 #include <iostream>
 
 using nova::cli::cli_error;
-using nova::cli::exec;
 using nova::cli::launcher;
 using nova::cli::option;
 using nova::cli::option_table;
@@ -59,7 +58,7 @@ void launcher::print_version() const {
     cout << name << " " << version << endl;
 }
 
-int launcher::start(unsigned int argc, const char** argv, const exec& program) {
+int launcher::start(unsigned int argc, const char** argv) {
     for (auto& opt : default_options)
         opts.add(opt);
 
@@ -67,7 +66,7 @@ int launcher::start(unsigned int argc, const char** argv, const exec& program) {
         parse_cli(argc, argv, opts, m_args);
 
         if (opts.selected("version")) print_version();
-        else program(*this);
+        else nova::cli::start(*this);
 
         return EXIT_SUCCESS;
     } catch (const cli_error& ex) {
