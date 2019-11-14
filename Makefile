@@ -14,7 +14,7 @@ cli-gen: CXXFLAGS += -DNAME='"cli-gen"' -DVERSION='"$(version)"'
 
 sample.type = executable
 sample.libs = color++ cli++
-sample.deps = libcli++ cli-gen
+sample.deps = cli-gen
 sample.ext = cli
 
 include ../makefiles/include/base.mk
