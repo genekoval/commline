@@ -10,14 +10,15 @@ cli++.deps = libcli++
 cli-gen.type = executable
 cli-gen.libs = color++ cli++ yaml-cpp
 cli-gen.deps = libcli++
-cli-gen: CXXFLAGS += -DNAME='"cli-gen"' -DVERSION='"$(version)"'
 
 sample.type = executable
 sample.libs = color++ cli++
 sample.deps = cli-gen
 sample.ext = cli
 
-include ../makefiles/include/base.mk
+include $(DEVROOT)/include/base.mk
+
+$(cli-gen): CXXFLAGS += -DNAME='"cli-gen"' -DVERSION='"$(version)"'
 
 define ext.cli.template
  $(obj)/$(1)/ext/cli.o: $(src)/$(1)/cli.yaml
