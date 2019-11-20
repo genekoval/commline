@@ -14,7 +14,7 @@ using std::string;
 using std::string_view;
 using std::vector;
 
-static const regex long_re("^--([^=]+)(?:=(.+))?$");
+static const regex long_re("^--([^=]+)(?:=(.*))?$");
 static const regex short_re("^-(.+)$");
 
 option::option(string_view opt, string_view description) :
