@@ -1,11 +1,10 @@
 project = cli++
 version = 0.1.0
 
-libcli++.type = shared
+targets = cli-gen libcli++ sample
+extensions = cli
 
-cli++.type = executable
-cli++.libs = color++ cli++
-cli++.deps = libcli++
+libcli++.type = shared
 
 cli-gen.type = executable
 cli-gen.libs = color++ cli++ yaml-cpp
@@ -13,26 +12,15 @@ cli-gen.deps = libcli++
 
 sample.type = executable
 sample.libs = color++ cli++
-sample.deps = cli-gen
-sample.ext = cli
+sample.deps = cli-gen cli
 
-include $(DEVROOT)/include/base.mk
+include $(DEVROOT)/include/mkbuild/base.mk
 
 $(cli-gen): CXXFLAGS += -DNAME='"cli-gen"' -DVERSION='"$(version)"'
 
-define ext.cli.template
- $(obj)/$(1)/ext/cli.o: $(src)/$(1)/cli.yaml
-	$(MKDIR) $(obj)/$(1)/ext
-	$(cli-gen.path) \
-		--build-name=$(1) \
+$(obj)/%/cli.o: $(src)/%/cli.yaml $(cli-gen)
+	$(cli-gen) \
+		--build-name=$* \
 		--build-version=$(version) \
-		--config-path=$(src)/$(1)/cli.yaml \
-	| $(COMPILE.cpp) -o $(obj)/$(1)/ext/cli.o -c -x c++ $(CXXFLAGS) -
-endef
-
-$(foreach target,$(targets),\
- $(if $(findstring cli,$($(target).ext)),\
-  $(eval $(call ext.cli.template,$(target)))))
-
-run: cli-gen
-	$($<.path) --build-name=cli-gen --build-version=1.2.3 --config-path=cli.yaml
+		--config-path=$< | \
+	$(COMPILE.cpp) -o $@ -c -x c++ $(CXXFLAGS) -
