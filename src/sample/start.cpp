@@ -1,14 +1,31 @@
-#include <nova/cli.h>
+#include <commands.h>
+#include <cli.h>
 #include <iostream>
 
-using nova::cli::launcher;
 using std::cout;
 using std::endl;
 
-void nova::cli::start(const launcher& cli) {
+void commline::commands::start(const commline::cli& cli) {
+    cout << "Starting the program..." << endl;
+
     cout
-        << "Hello, " << cli.options().value("hello").value_or("no one") << "!"
+        << "Logging to: "
+        << cli.options().value("log").value_or("stdout")
         << endl;
+}
+
+void commline::commands::stop(const commline::cli& cli) {
+    if (cli.options().selected("force"))
+        cout << "STOP!!! This is an emergency!" << endl;
+    else
+        cout << "Stopping the process..." << endl;
+}
+
+void commline::main(const commline::cli& cli) {
+    cout
+        << "Hello, "
+        << cli.options().value("hello").value_or("no one")
+        << "!" << endl;
 
     if (cli.options().selected("daemon"))
         cout << "Forking the process..." << endl;

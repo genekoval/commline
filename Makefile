@@ -22,5 +22,14 @@ $(obj)/%/cli.o: $(src)/%/cli.yaml $(cli-gen)
 	$(cli-gen) \
 		--build-name=$* \
 		--build-version=$(version) \
-		--config-path=$< | \
+		--config-path=$< \
+		--header-out=$(include)/commands.h | \
 	$(COMPILE.cpp) -o $@ -c -x c++ $(CXXFLAGS) -
+
+runopts = -n "artifact" -V "0.0.1" -c "$(src)/sample/cli.yaml" -h "commands.h"
+
+run: $(cli-gen)
+	@$< $(runopts)
+
+debug: $(cli-gen)
+	@gdb --ex=start --args $< $(runopts)

@@ -1,10 +1,21 @@
-#include <nova/cli.h>
+#include <commands.h>
+#include <cli.h>
 
-using nova::cli::launcher;
-using nova::cli::option;
+using commline::command;
+using commline::option;
+using commline::origin;
 
-int main(int argc, const char** argv) {
-	return launcher("$name", "$version", {
+namespace commline {
+	program& current_program() {
+		static program instance("$name", "$version");
+		return instance;
+	}
+}
+
+int main(int argc, char** argv) {
+	return origin({
 		$options
-	}).start(argc, argv);
+	}, {
+		$commands
+	}).run(argc, argv);
 }
