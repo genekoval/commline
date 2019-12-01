@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+#include <string>
 #include <string>
 #include <vector>
 
@@ -25,4 +27,6 @@ namespace commline::generator {
         std::string format_commands();
         std::string format_options();
     };
+
+    origin decode_config(std::filesystem::path&& path);
 }
