@@ -1,25 +1,25 @@
 project = cli++
 version = 0.1.0
 
-targets = cli-gen libcli++ sample
+targets = commline libcli++ sample
 extensions = cli
 
 libcli++.type = shared
 
-cli-gen.type = executable
-cli-gen.libs = color++ cli++ yaml-cpp
-cli-gen.deps = libcli++
+commline.type = executable
+commline.libs = color++ cli++ yaml-cpp
+commline.deps = libcli++
 
 sample.type = executable
 sample.libs = color++ cli++
-sample.deps = cli-gen cli
+sample.deps = commline cli
 
 include $(DEVROOT)/include/mkbuild/base.mk
 
-$(cli-gen): CXXFLAGS += -DNAME='"cli-gen"' -DVERSION='"$(version)"'
+$(commline): CXXFLAGS += -DNAME='"commline"' -DVERSION='"$(version)"'
 
-$(obj)/%/cli.o: $(src)/%/cli.yaml $(cli-gen)
-	$(cli-gen) \
+$(obj)/%/cli.o: $(src)/%/cli.yaml $(commline)
+	$(commline) \
 		--build-name=$* \
 		--build-version=$(version) \
 		--config-path=$< \
@@ -28,8 +28,8 @@ $(obj)/%/cli.o: $(src)/%/cli.yaml $(cli-gen)
 
 runopts = -n "artifact" -V "0.0.1" -c "$(src)/sample/cli.yaml" -h "commands.h"
 
-run: $(cli-gen)
+run: $(commline)
 	@$< $(runopts)
 
-debug: $(cli-gen)
+debug: $(commline)
 	@gdb --ex=start --args $< $(runopts)
