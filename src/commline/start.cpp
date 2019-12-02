@@ -17,6 +17,16 @@ using std::ofstream;
 using std::string;
 using std::vector;
 
+namespace fs = std::filesystem;
+
+const fs::path default_commands_header("commline/commands.h");
+
+void open_commands_header(fs::path&& path, ofstream& stream) {
+    path /= default_commands_header;
+    fs::create_directories(path.parent_path());
+    stream.open(path);
+}
+
 void commline::main(const commline::cli& cli) {
     auto name = cli.options().value("build-name").value();
     auto version = cli.options().value("build-version").value();
@@ -25,16 +35,17 @@ void commline::main(const commline::cli& cli) {
         cli.options().value("config-path").value_or(".")
     );
 
-    auto header_path = cli.options().value("header-out").value();
-
     ofstream header;
-    header.open(header_path);
+    open_commands_header(
+        cli.options().value("header-dir").value_or("."),
+        header
+    );
+
     header << fill_template(commands_header, {
         {variable::commands, [&origin]() {
             return origin.format_command_functions();
         }}
     });
-    header.close();
 
     cout << fill_template(main_source, {
         {variable::commands, [&origin]() { return origin.format_commands(); }},

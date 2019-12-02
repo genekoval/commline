@@ -23,10 +23,12 @@ $(obj)/%/cli.o: $(src)/%/cli.yaml $(commline)
 		--build-name=$* \
 		--build-version=$(version) \
 		--config-path=$< \
-		--header-out=$(include)/commands.h | \
+		--header-dir=$(src)/$*/include | \
 	$(COMPILE.cpp) -o $@ -c -x c++ $(CXXFLAGS) -
 
-runopts = -n "artifact" -V "0.0.1" -c "$(src)/sample/cli.yaml" -h "commands.h"
+CLEAN += $(src)/*/include/commline
+
+runopts = -n "artifact" -V "0.0.1" -c "$(src)/sample"
 
 run: $(commline)
 	@$< $(runopts)

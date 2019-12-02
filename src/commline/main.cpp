@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
         ),
         option(
             "h",
-            "header-out",
+            "header-dir",
             true,
             "Where to write header file"
         )

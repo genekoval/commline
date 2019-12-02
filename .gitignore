@@ -1,4 +1,8 @@
 *.swp
+
+# Files removed by 'make clean' {{{
 bin
 obj
-resources.h*
+resources/include
+src/sample/include/commline
+# }}}
