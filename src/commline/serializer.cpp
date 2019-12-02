@@ -8,21 +8,23 @@ namespace fs = std::filesystem;
 using std::string;
 
 namespace commline::generator {
-    const string default_config_name("cli.yaml");
-
-    void assert_exists(fs::file_type type) {
-        if (type == fs::file_type::not_found)
-            throw commline::cli_error("configuration file does not exist");
-    }
+    /**
+     * The default name for the commline configuration file.
+     * This file will be read and its contents deserialized.
+     */
+    const fs::path default_config_path("cli.yaml");
 
     origin decode_config(fs::path&& path) {
-        auto status = fs::status(path);
-        assert_exists(status.type());
+        const auto assert_exists = [&path]() -> fs::file_status {
+            auto status = fs::status(path);
+            if (status.type() == fs::file_type::not_found)
+                throw commline::cli_error("configuration file not found");
+            return status;
+        };
 
-        if (fs::is_directory(status)) {
-            path /= default_config_name;
-            status = fs::status(path);
-            assert_exists(status.type());
+        if (fs::is_directory(assert_exists())) {
+            path /= default_config_path;
+            assert_exists();
         }
 
         return YAML::LoadFile(path).as<origin>();
