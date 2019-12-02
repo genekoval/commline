@@ -1,9 +1,9 @@
 #include "generator.h"
 #include "templates.h"
 
+#include <cli.h>
 #include <fstream>
 #include <iostream>
-#include <cli.h>
 
 using commline::generator::decode_config;
 
@@ -21,10 +21,21 @@ namespace fs = std::filesystem;
 
 const fs::path default_commands_header("commline/commands.h");
 
-void open_commands_header(fs::path&& path, ofstream& stream) {
+void write_commands_header(
+    fs::path&& path,
+    const commline::generator::origin& origin
+) {
     path /= default_commands_header;
     fs::create_directories(path.parent_path());
-    stream.open(path);
+
+    ofstream header;
+    header.open(path);
+
+    header << fill_template(commands_header, {
+        {variable::commands, [&origin]() {
+            return origin.format_command_functions();
+        }}
+    }) << std::flush;
 }
 
 void commline::main(const commline::cli& cli) {
@@ -35,17 +46,9 @@ void commline::main(const commline::cli& cli) {
         cli.options().value("config-path").value_or(".")
     );
 
-    ofstream header;
-    open_commands_header(
-        cli.options().value("header-dir").value_or("."),
-        header
+    write_commands_header(
+        cli.options().value("header-dir").value_or("."), origin
     );
-
-    header << fill_template(commands_header, {
-        {variable::commands, [&origin]() {
-            return origin.format_command_functions();
-        }}
-    });
 
     cout << fill_template(main_source, {
         {variable::commands, [&origin]() { return origin.format_commands(); }},

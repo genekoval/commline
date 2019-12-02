@@ -2,7 +2,6 @@
 
 #include <filesystem>
 #include <string>
-#include <string>
 #include <vector>
 
 namespace commline::generator {
@@ -23,9 +22,9 @@ namespace commline::generator {
         std::vector<command> commands;
         std::vector<option> options;
 
-        std::string format_command_functions();
-        std::string format_commands();
-        std::string format_options();
+        std::string format_command_functions() const;
+        std::string format_commands() const;
+        std::string format_options() const;
     };
 
     origin decode_config(std::filesystem::path&& path);

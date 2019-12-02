@@ -41,7 +41,7 @@ namespace commline::generator {
         return os;
     }
 
-    string origin::format_command_functions() {
+    string origin::format_command_functions() const {
         vector<string> functions;
 
         for (const auto& com : commands) {
@@ -53,11 +53,11 @@ namespace commline::generator {
         return join(functions, "\n\t");
     }
 
-    string origin::format_commands() {
+    string origin::format_commands() const {
         return join(commands, ",\n\t\t");
     }
 
-    string origin::format_options() {
+    string origin::format_options() const {
         return join(options, ",\n\t\t");
     }
 }
