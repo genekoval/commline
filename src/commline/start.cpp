@@ -1,5 +1,5 @@
 #include "generator.h"
-#include "template.h"
+#include "templates.h"
 
 #include <fstream>
 #include <iostream>
@@ -7,10 +7,10 @@
 
 using commline::generator::decode_config;
 
-using commline::writer::commands_header;
-using commline::writer::fill_template;
-using commline::writer::main_source;
-using commline::writer::variable;
+using commline::templates::commands_header;
+using commline::templates::fill_template;
+using commline::templates::main_source;
+using commline::templates::variable;
 
 using std::cout;
 using std::ofstream;

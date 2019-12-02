@@ -1,4 +1,4 @@
-#include "template.h"
+#include "templates.h"
 
 #include <nova/ext/string.h>
 #include <regex>
@@ -13,13 +13,13 @@ using std::smatch;
 using std::string;
 using std::unordered_map;
 
-namespace commline::writer {
-    const template_string commands_header(
+namespace commline::templates {
+    const std::string commands_header(
         reinterpret_cast<char*>(resources_commands_h),
         resources_commands_h_len
     );
 
-    const template_string main_source(
+    const std::string main_source(
         reinterpret_cast<char*>(resources_main_template_cpp),
         resources_main_template_cpp_len
     );
@@ -45,7 +45,7 @@ namespace commline::writer {
     const regex variable_regex(R"(\$([a-zA-Z0-9]+))");
 
     string fill_template(
-        const template_string& templ,
+        const std::string& templ,
         const variable_map& handlers
     ) {
         return replace<string>(
