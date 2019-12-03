@@ -4,6 +4,7 @@ version = 0.1.0
 library = lib$(project)
 
 targets = $(project) $(library) sample
+install = $(project) $(library)
 
 extensions = cli
 
