@@ -1,37 +1,40 @@
-project = cli++
+project = commline
 version = 0.1.0
 
-targets = commline libcli++ sample
+library = lib$(project)
+
+targets = $(project) $(library) sample
+
 extensions = cli
 
-libcli++.type = shared
+$(library).type = shared
 
-commline.type = executable
-commline.libs = color++ cli++ yaml-cpp
-commline.deps = libcli++
+$(project).type = executable
+$(project).libs = $(project) color++ yaml-cpp
+$(project).deps = $(library)
 
 sample.type = executable
-sample.libs = color++ cli++
-sample.deps = commline cli
+sample.libs = $(project) color++
+sample.deps = $(project) cli
 
 include $(DEVROOT)/include/mkbuild/base.mk
 
-$(commline): CXXFLAGS += -DNAME='"commline"' -DVERSION='"$(version)"'
+$($(project)): CXXFLAGS += -DNAME='"$(project)"' -DVERSION='"$(version)"'
 
-$(obj)/%/cli.o: $(src)/%/cli.yaml $(commline)
-	$(commline) \
+$(obj)/%/cli.o: $(src)/%/cli.yaml $($(project))
+	$($(project)) \
 		--build-name=$* \
 		--build-version=$(version) \
 		--config-path=$< \
 		--header-dir=$(src)/$*/include | \
 	$(COMPILE.cpp) -o $@ -c -x c++ $(CXXFLAGS) -
 
-CLEAN += $(src)/*/include/commline
+CLEAN += $(src)/*/include/$(project)
 
 runopts = -n "artifact" -V "0.0.1" -c "$(src)/sample"
 
-run: $(commline)
+run: $($(project))
 	@$< $(runopts)
 
-debug: $(commline)
+debug: $($(project))
 	@gdb --ex=start --args $< $(runopts)
