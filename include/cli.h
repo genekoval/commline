@@ -35,8 +35,8 @@ namespace commline {
     class action;
 
     class option {
-        friend class action;
-
+    friend class cli;
+    private:
         std::string m_description;
         bool m_has_arg;
         std::string m_long_opt;
@@ -62,8 +62,8 @@ namespace commline {
     };
 
     class option_table {
-        friend class action;
-
+    friend class cli;
+    private:
         std::vector<option> opts;
         std::unordered_map<std::string,option*> opt_map;
 
@@ -82,10 +82,12 @@ namespace commline {
     private:
         std::vector<std::string> m_args;
         std::string m_exec_path;
-        const option_table* option_ptr;
-    public:
-        cli(std::string_view exec_path);
+        option_table* option_ptr;
 
+        cli(std::string_view exec_path, option_table* option_ptr);
+
+        void parse(unsigned int argc, char** argv);
+    public:
         const std::vector<std::string>& args() const;
         std::string_view exec_path() const;
         const option_table& options() const;
@@ -98,15 +100,13 @@ namespace commline {
     class action {
         exec function;
         option_table opts;
-
-        cli& parse(cli& c, unsigned int argc, char** argv);
     public:
         action(
             std::initializer_list<option> option_list,
             const exec function
         );
 
-        void operator()(cli& c, unsigned int argc, char** argv);
+        void operator()(char* exec_path, unsigned int argc, char** argv);
     };
 
     class command {

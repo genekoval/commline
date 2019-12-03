@@ -35,7 +35,7 @@ namespace commline {
             argv++;
         };
 
-        cli c(argv[0]);
+        char* exec_path = argv[0];
         advance_args();
 
         action& act = m_action;
@@ -43,7 +43,6 @@ namespace commline {
         if (argc > 0) {
             const string possible_command(argv[0]);
 
-            // TODO C++20: replace with commands.contains()
             if (commands.find(possible_command) != commands.end()) {
                 act = commands.at(possible_command).get_action();
                 advance_args();
@@ -51,7 +50,7 @@ namespace commline {
         }
 
         try {
-            act(c, argc, argv);
+            act(exec_path, argc, argv);
             return EXIT_SUCCESS;
         }
         catch (const cli_error& ex) {
