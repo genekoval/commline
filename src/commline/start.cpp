@@ -1,7 +1,7 @@
 #include "generator.h"
 #include "templates.h"
 
-#include <cli.h>
+#include <commline/commline.h>
 #include <fstream>
 #include <iostream>
 

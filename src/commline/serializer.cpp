@@ -1,6 +1,6 @@
 #include "generator.h"
 
-#include <cli.h>
+#include <commline/commline.h>
 #include <yaml-cpp/yaml.h>
 
 namespace fs = std::filesystem;
