@@ -20,8 +20,8 @@ namespace commline::templates {
     );
 
     const std::string main_source(
-        reinterpret_cast<char*>(resources_main_template_cpp),
-        resources_main_template_cpp_len
+        reinterpret_cast<char*>(resources_main_cpp),
+        resources_main_cpp_len
     );
 
     variable variable_parse(const string& str) {

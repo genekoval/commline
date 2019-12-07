@@ -1,5 +1,5 @@
-#include <commline/commline.h>
 #include <commline/commands.h>
+#include <commline/commline.h>
 
 using commline::command;
 using commline::option;
