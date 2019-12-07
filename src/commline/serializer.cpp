@@ -1,4 +1,4 @@
-#include "generator.h"
+#include <generator.h>
 
 #include <commline/commline.h>
 #include <yaml-cpp/yaml.h>

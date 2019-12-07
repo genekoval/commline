@@ -1,5 +1,5 @@
-#include "generator.h"
-#include "templates.h"
+#include <generator.h>
+#include <templates.h>
 
 #include <commline/commline.h>
 #include <fstream>
