@@ -1,6 +1,7 @@
 $(obj)/%/cli.o: $(src)/%/cli.yaml
-	cli-gen \
+	commline \
 		--build-name=$* \
 		--build-version=$(version) \
-		--config-path=$< | \
+		--config-path=$< \
+		--header-dir=$(src)/$*/include | \
 	$(COMPILE.cpp) -o $@ -c -x c++ $(CXXFLAGS) -
