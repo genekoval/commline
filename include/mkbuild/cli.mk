@@ -1,3 +1,5 @@
+CLEAN += $(src)/*/include/commline/commands.h
+
 $(obj)/%/cli.o: $(src)/%/cli.yaml
 	commline \
 		--build-name=$* \
