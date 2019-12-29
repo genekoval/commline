@@ -55,7 +55,9 @@ namespace YAML {
         static bool decode(const Node& node, command& com) {
             com.name = node["name"].as<string>();
             com.description = node["description"].as<string>();
-            com.options = node["options"].as<vector<option>>();
+
+            const auto& options = node["options"];
+            if (options) com.options = options.as<vector<option>>();
 
             return true;
         }
@@ -64,10 +66,10 @@ namespace YAML {
     template<>
     struct convert<origin> {
         static bool decode(const Node& node, origin& ori) {
-            auto commands = node["commands"];
-            auto options = node["options"];
-
+            const auto& commands = node["commands"];
             if (commands) ori.commands = commands.as<vector<command>>();
+
+            const auto& options = node["options"];
             if (options) ori.options = options.as<vector<option>>();
 
             return true;
