@@ -19,13 +19,16 @@ using std::vector;
 
 namespace fs = std::filesystem;
 
-const fs::path default_commands_header("commline/commands.h");
+const fs::path header_dir(commline::current_program().name());
+
+const fs::path program_header_file(header_dir / (header_dir.string() + ".h"));
+const fs::path commands_header_file(header_dir / fs::path("commands.h"));
 
 void write_commands_header(
     fs::path&& path,
     const commline::generator::origin& origin
 ) {
-    path /= default_commands_header;
+    path /= commands_header_file;
     fs::create_directories(path.parent_path());
 
     ofstream header;
@@ -46,12 +49,18 @@ void commline::main(const commline::cli& cli) {
         cli.options().value("config-path").value_or(".")
     );
 
-    write_commands_header(
-        cli.options().value("header-dir").value_or("."), origin
-    );
+    auto* header = &program_header_file;
+
+    if (!origin.commands.empty()) {
+        header = &commands_header_file;
+        write_commands_header(
+            cli.options().value("header-dir").value_or("."), origin
+        );
+    }
 
     cout << fill_template(main_source, {
         {variable::commands, [&origin]() { return origin.format_commands(); }},
+        {variable::header, [header]() { return *header; }},
         {variable::name, [&name]() { return name; }},
         {variable::options, [&origin]() { return origin.format_options(); }},
         {variable::version, [&version]() { return version; }}

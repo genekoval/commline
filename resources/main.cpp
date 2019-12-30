@@ -1,5 +1,4 @@
-#include <commline/commands.h>
-#include <commline/commline.h>
+#include <$header>
 
 using commline::command;
 using commline::option;

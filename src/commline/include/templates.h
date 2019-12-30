@@ -7,6 +7,7 @@
 namespace commline::templates {
     enum variable {
         commands,
+        header,
         name,
         options,
         version

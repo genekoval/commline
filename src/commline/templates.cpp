@@ -27,6 +27,7 @@ namespace commline::templates {
     variable variable_parse(const string& str) {
         static const unordered_map<string,variable> lookup = {
             {"commands", variable::commands},
+            {"header", variable::header},
             {"name", variable::name},
             {"options", variable::options},
             {"version", variable::version}
