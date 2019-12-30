@@ -138,6 +138,7 @@ namespace commline {
     };
 
     namespace util {
+        void print_error(std::string_view message);
         void print_error(const std::exception& ex);
     }
 }

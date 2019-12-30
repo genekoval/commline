@@ -57,8 +57,13 @@ namespace commline {
             util::print_error(ex);
         }
         catch (const std::exception& ex) {
+            util::print_error("fatal error encountered");
             std::cout << ex.what() << std::endl;
-            std::cout << "program returned " << EXIT_FAILURE << std::endl;
+            std::cout
+                << exec_path
+                << ": returned "
+                << EXIT_FAILURE
+                << std::endl;
         }
 
         return EXIT_FAILURE;
