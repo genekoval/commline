@@ -9,9 +9,10 @@ targets := $(install) sample
 extensions = cli
 
 $(library).type = shared
+$(library).libs = color++
 
 $(project).type = executable
-$(project).libs = $(project) color++ yaml-cpp
+$(project).libs = $(project) yaml-cpp
 $(project).deps = $(library)
 
 sample.type = executable

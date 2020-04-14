@@ -1,10 +1,9 @@
 #include <generator.h>
 
 #include <iomanip>
-#include <nova/ext/string.h>
+#include <ext/string.h>
 #include <sstream>
 
-using nova::ext::string::join;
 using std::ostream;
 using std::ostringstream;
 using std::quoted;
@@ -18,7 +17,7 @@ namespace commline::generator {
         std::ostringstream boolstream;
         boolstream << std::boolalpha << opt.has_arg;
 
-        os << join(vector<string> {
+        os << ext::join(vector<string> {
             "\"" + opt.short_opt + "\"",
             "\"" + opt.long_opt + "\"",
             boolstream.str(),
@@ -33,7 +32,7 @@ namespace commline::generator {
     ostream& operator<<(ostream& os, const command& com) {
         os << "{" << "\"" + com.name + "\"" << ", command(";
         os << "\n\t\t\t\"" + com.description + "\", \n\t\t\t{\n\t\t\t\t";
-        os << join(com.options, ",\n\t\t\t\t");
+        os << ext::join(com.options, ",\n\t\t\t\t");
         os << "\n\t\t\t},\n\t\t\t";
         os << "commline::commands::" << com.name;
         os << "\n\t\t)}";
@@ -50,14 +49,14 @@ namespace commline::generator {
             functions.push_back(os.str());
         }
 
-        return join(functions, "\n\t");
+        return ext::join(functions, "\n\t");
     }
 
     string origin::format_commands() const {
-        return join(commands, ",\n\t\t");
+        return ext::join(commands, ",\n\t\t");
     }
 
     string origin::format_options() const {
-        return join(options, ",\n\t\t");
+        return ext::join(options, ",\n\t\t");
     }
 }

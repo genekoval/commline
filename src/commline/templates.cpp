@@ -1,11 +1,10 @@
 #include <templates.h>
 
-#include <nova/ext/string.h>
+#include <ext/string.h>
 #include <regex>
 #include <resources.h>
 #include <stdexcept>
 
-using nova::ext::string::replace;
 using std::invalid_argument;
 using std::out_of_range;
 using std::regex;
@@ -49,7 +48,7 @@ namespace commline::templates {
         const std::string& templ,
         const variable_map& handlers
     ) {
-        return replace<string>(
+        return ext::replace<string>(
             templ,
             variable_regex,
             [&handlers](const smatch& match) {
