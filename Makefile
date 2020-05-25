@@ -9,17 +9,18 @@ targets := $(install) sample
 extensions = cli
 
 $(library).type = shared
-$(library).libs = color++
 
 $(project).type = executable
 $(project).libs = $(project) yaml-cpp
 $(project).deps = $(library)
 
 sample.type = executable
-sample.libs = $(project) color++
+sample.libs = $(project)
 sample.deps = $(project) cli
 
-include $(DEVROOT)/include/mkbuild/base.mk
+BUILD = /tmp/$(project)
+
+include mkbuild/base.mk
 
 $($(project)): CXXFLAGS += -DNAME='"$(project)"' -DVERSION='"$(version)"'
 
