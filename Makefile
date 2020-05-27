@@ -1,6 +1,8 @@
 project = commline
 version = 0.1.0
 
+STD := gnu++2a
+
 library = lib$(project)
 
 install = $(project) $(library)

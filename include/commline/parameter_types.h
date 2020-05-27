@@ -6,8 +6,8 @@ namespace commline {
     class flag : public parameter<bool> {
     public:
         flag(
-            std::initializer_list<std::string> aliases,
-            const std::string& description
+            const std::string& description,
+            std::initializer_list<std::string> aliases
         );
 
         auto enable() -> void;

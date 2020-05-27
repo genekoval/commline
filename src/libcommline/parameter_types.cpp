@@ -7,8 +7,8 @@ namespace commline {
     {}
 
     flag::flag(
-        std::initializer_list<std::string> aliases,
-        const std::string& description
+        const std::string& description,
+        std::initializer_list<std::string> aliases
     ) :
         parameter<bool>(aliases, description, false)
     {}

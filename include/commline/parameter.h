@@ -15,16 +15,14 @@ namespace commline {
     class parameter : public has_description {
     public:
         using value_type = Value;
-
         const std::vector<std::string> aliases;
     protected:
         Value val;
 
-        template <typename... Aliases>
         parameter(
+            std::initializer_list<std::string> aliases,
             const std::string& description,
-            Value default_value,
-            Aliases&&... aliases
+            Value default_value
         ) :
             has_description(description),
             aliases(aliases),
@@ -44,7 +42,7 @@ namespace commline {
         const std::string value_name;
 
         auto set(input_type input) -> void {
-            val = Derived::parse(input);
+            this->val = Derived::parse(input);
         }
     protected:
         needs_value(
