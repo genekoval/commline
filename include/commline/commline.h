@@ -3,10 +3,12 @@
 #include <array>
 #include <functional> // function
 #include <initializer_list> // initializer_list
+#include <iostream>
 #include <optional> // optional
 #include <stdexcept> // runtime_error
 #include <string> // string
 #include <string_view> // string_view
+#include <system_error>
 #include <unordered_map> // unordered_map
 #include <variant>
 #include <utility>
@@ -19,27 +21,9 @@ namespace commline {
 
     struct has_description {
         const std::string description;
+    protected:
+        has_description(const std::string& desc) : description(desc) {}
     };
-
-    class program;
-    program& current_program();
-
-    class program {
-    friend program& current_program();
-    private:
-        std::string m_name;
-        std::string m_version;
-
-        program(
-            std::string_view name,
-            std::string_view version
-        );
-    public:
-        std::string_view name();
-        std::string_view version();
-    };
-
-    class action;
 
     template <typename Value>
     class parameter : public has_description {
@@ -96,8 +80,8 @@ namespace commline {
         std::vector<parameter_type> parameters;
     public:
         auto add(
-            parameter_type param,
-            std::initializer_list<std::string> aliases
+            std::initializer_list<std::string> aliases,
+            parameter_type param
         ) -> void {
             parameters.push_back(param);
 
@@ -122,7 +106,7 @@ namespace commline {
 
                 // A `--` by itself signifies the end of options.
                 // Everything that follows is an argument.
-                if (current.starts_with("-- ")) {
+                if (current == "--") {
                     while (first != last) handle_arg(*first++);
                 }
                 // Handle a long option.
@@ -181,84 +165,59 @@ namespace commline {
         }
     };
 
-    class option_table {
-    friend class cli;
-    private:
-        std::vector<option> opts;
-        std::unordered_map<std::string,option*> opt_map;
+    class command_metadata : public has_description {
+        std::unorderd_map<std::string, command> commands;
+    protected:
+        parameter_list parameters;
+        std::vector<std::string> arguments;
 
-        void add_to_map(option* opt);
-        option& get(const std::string& key);
+        command_metadata(const std::string& desc) : has_description(desc) {}
+
+        virtual auto action() -> void = 0;
     public:
-        option_table(std::initializer_list<option> option_list);
+        auto comm(
+            const std::string& name,
+            const command& subcommand
+        ) -> command_metadata& {
+            commands[name] = subcommand;
+            return *this;
+        }
 
-        void add(const option& opt);
-        bool selected(const std::string& key) const;
-        std::optional<std::string> value(const std::string& key) const;
-    };
+        template <typename InputIt>
+        auto execute(InputIt first, InputIt last) -> int {
+            try {
+                if (first != last && commands.count(*first)) {
+                    commands[*first].execute(++first, last);
+                }
+                else {
+                    parameters.parse(
+                        first,
+                        last,
+                        [&arguments](const std::string& arg) {
+                            arguments.push_back(arg);
+                        }
+                    );
+                    action();
+                }
+            }
+            catch (const std::system_error& ex) {
+                std::err << ex.what() << std::endl;
+                return ex.code().value();
+            }
+            catch (const std::exception& ex) {
+                std::err << ex.what() << std::endl;
+                return EXIT_FAILURE;
+            }
 
-    class cli {
-    friend class action;
-    private:
-        std::vector<std::string> m_args;
-        std::string m_exec_path;
-        option_table* option_ptr;
+            return EXIT_SUCCESS;
+        }
 
-        cli(std::string_view exec_path, option_table* option_ptr);
-
-        void parse(unsigned int argc, char** argv);
-    public:
-        const std::vector<std::string>& args() const;
-        std::string_view exec_path() const;
-        const option_table& options() const;
-    };
-
-    void main(const cli&);
-
-    using exec = std::function<void(const cli&)>;
-
-    class action {
-        exec function;
-        option_table opts;
-    public:
-        action(
-            std::initializer_list<option> option_list,
-            const exec function
-        );
-
-        void operator()(char* exec_path, unsigned int argc, char** argv);
-    };
-
-    class command {
-        action m_action;
-        std::string m_description;
-    public:
-        command(
-            std::string_view description,
-            std::initializer_list<option> option_list,
-            const exec function
-        );
-
-        const action& get_action();
-    };
-
-    class origin {
-        action m_action;
-        std::unordered_map<std::string, command> commands;
-    public:
-        origin(
-            std::initializer_list<option> options,
-            std::initializer_list<std::pair<
-                const std::string,
-                command
-            >> commands
-        );
-
-        int run(unsigned int argc, char** argv);
-    };
-
-    namespace util {
-        void print_error(std::string_view message);
-        void print_error(const std::exception& ex);
+        auto param(
+            std::initializer_list<std::string> aliases,
+            parameter_type param
+        ) -> command_metadata& {
+            parameters.add(aliases, param);
+            return *this;
+        }
     }
 }
