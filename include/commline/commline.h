@@ -5,7 +5,6 @@
 #include <initializer_list> // initializer_list
 #include <iostream>
 #include <optional> // optional
-#include <stdexcept> // runtime_error
 #include <string> // string
 #include <string_view> // string_view
 #include <system_error>
@@ -15,10 +14,6 @@
 #include <vector> // vector
 
 namespace commline {
-    struct cli_error : std::runtime_error {
-        using runtime_error::runtime_error;
-    };
-
     struct has_description {
         const std::string description;
     protected:
