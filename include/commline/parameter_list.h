@@ -1,8 +1,10 @@
 #pragma once
 
 #include <commline/error.h>
+#include <commline/parameter_types.h>
 
 #include <tuple>
+#include <unordered_map>
 #include <variant>
 
 namespace commline {
@@ -23,7 +25,7 @@ namespace commline {
         std::unordered_map<std::string, parameter_type*> lookup_table;
 
         auto add(const parameter_type& p) -> void {
-            std::visit([&lookup_table, &p](auto&& param) {
+            std::visit([this, &p](auto&& param) {
                 for (const auto& alias : param.aliases) {
                     lookup_table[alias] = &p;
                 }
@@ -39,7 +41,7 @@ namespace commline {
 
         auto get(const std::string& alias) -> parameter_type& {
             try {
-                return *(aliases.at(alias));
+                return *(lookup_table.at(alias));
             }
             catch (const std::out_of_range& ex) {
                 throw cli_error("unknown option: " + alias);
@@ -104,8 +106,7 @@ namespace commline {
             }
         }
     public:
-        template <typename... Parameters>
-        parameter_list::parameter_list(Parameters&&... parameters) :
+        parameter_list(Parameters&&... parameters) :
             parameters(std::make_tuple(parameters...))
         {
             generate_lookup_table(std::index_sequence_for<Parameters...>{});

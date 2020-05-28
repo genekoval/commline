@@ -1,5 +1,4 @@
-#include <commline/error.h>
-#include <commline/parameter_types.h>
+#include <commline/commline>
 
 #include <gtest/gtest.h>
 #include <limits>
