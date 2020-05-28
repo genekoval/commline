@@ -25,7 +25,7 @@ namespace commline {
         std::unordered_map<std::string, parameter_type> lookup_table;
 
         auto add(parameter_type&& p) -> void {
-            std::visit([this](auto&& param) {
+            std::visit([this, &p](auto&& param) {
                 for (const auto& alias : param->aliases) {
                     lookup_table[alias] = p;
                 }
@@ -41,7 +41,7 @@ namespace commline {
 
         auto get(const std::string& alias) -> parameter_type& {
             try {
-                return *(lookup_table.at(alias));
+                return lookup_table.at(alias);
             }
             catch (const std::out_of_range& ex) {
                 throw cli_error("unknown option: " + alias);
@@ -49,8 +49,8 @@ namespace commline {
         }
 
         auto set_flag(const parameter_type& p) -> bool {
-            if (auto param = std::get_if<flag>(&p)) {
-                (*param).enable();
+            if (auto param = std::get_if<flag*>(&p)) {
+                (*param)->enable();
                 return true;
             }
             else return false;
@@ -61,7 +61,7 @@ namespace commline {
             const std::string& value
         ) -> void {
             std::visit([&value](auto&& param) {
-                param.set(value);
+                param->set(value);
             }, p);
         }
 
@@ -112,6 +112,8 @@ namespace commline {
         {
             generate_lookup_table(std::index_sequence_for<Parameters...>{});
         }
+
+        auto options() -> list_type { return parameters; }
 
         template <typename InputIt, typename Callable>
         auto parse(InputIt first, InputIt last, Callable handle_arg) -> void {

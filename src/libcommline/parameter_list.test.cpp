@@ -27,5 +27,21 @@ protected:
 };
 
 TEST_F(ParameterListTest, ListCreation) {
+    const auto a = "hello"s;
+    const auto argv = std::vector<std::string>({"--help", a});
+    auto arguments = std::vector<std::string>();
+
     auto list = commline::parameter_list<commline::flag>(flag_opt);
+
+    list.parse(argv.begin(), argv.end(), [&arguments](const std::string& arg) {
+        arguments.push_back(arg);
+    });
+
+    ASSERT_EQ(1, arguments.size());
+    ASSERT_EQ(a, arguments[0]);
+
+    auto options = list.options();
+    auto flag = std::get<0>(options);
+
+    ASSERT_TRUE(flag.value());
 }

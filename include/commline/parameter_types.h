@@ -13,6 +13,11 @@ namespace commline {
         {}
 
         auto enable() -> void;
+
+        // Ensures compatability with options that require a value.
+        // TODO Combine the flag type with the other option types, so that
+        // this method makes sense and is not just a noop.
+        auto set(const std::string& value) -> void;
     };
 
     class string : public needs_value<string, std::string> {

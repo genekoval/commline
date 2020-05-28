@@ -8,6 +8,8 @@ namespace commline {
 
     auto flag::enable() -> void { val = true; }
 
+    auto flag::set(const std::string& value) -> void {}
+
     auto string::parse(input_type input) -> value_type {
         return input;
     }
