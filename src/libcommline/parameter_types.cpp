@@ -6,13 +6,6 @@ namespace commline {
         description(description)
     {}
 
-    flag::flag(
-        const std::string& description,
-        std::initializer_list<std::string> aliases
-    ) :
-        parameter<bool>(aliases, description, false)
-    {}
-
     auto flag::enable() -> void { val = true; }
 
     auto string::parse(input_type input) -> value_type {
@@ -24,7 +17,7 @@ namespace commline {
             return std::stoi(input);
         }
         catch (const std::invalid_argument& ex) {
-            throw cli_error("failed to parse integer: " + input);
+            throw cli_error("invalid integer: " + input);
         }
         catch (const std::out_of_range& ex) {
             throw cli_error("integer argument out of range: " + input);
@@ -36,7 +29,7 @@ namespace commline {
             return std::stof(input);
         }
         catch (const std::invalid_argument& ex) {
-            throw cli_error("failed to parse number: " + input);
+            throw cli_error("invalid number: " + input);
         }
         catch (const std::out_of_range& ex) {
             throw cli_error("number argument out of range: " + input);

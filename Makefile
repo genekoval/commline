@@ -20,6 +20,13 @@ sample.type = executable
 sample.libs = $(project)
 sample.deps = $(project) cli
 
+define test.libs
+ $(project)
+ gtest
+ gtest_main
+endef
+test.deps = $(library)
+
 BUILD = /tmp/$(project)
 
 include mkbuild/base.mk
