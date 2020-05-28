@@ -11,7 +11,7 @@ namespace commline {
     template <typename... Parameters>
     class parameter_list {
         using list_type = std::tuple<Parameters...>;
-        using parameter_type = std::variant<Parameters...>;
+        using parameter_type = std::variant<Parameters*...>;
 
         template<std::size_t N>
         using value_type =
@@ -22,12 +22,12 @@ namespace commline {
         }
 
         list_type parameters;
-        std::unordered_map<std::string, parameter_type*> lookup_table;
+        std::unordered_map<std::string, parameter_type> lookup_table;
 
-        auto add(const parameter_type& p) -> void {
-            std::visit([this, &p](auto&& param) {
-                for (const auto& alias : param.aliases) {
-                    lookup_table[alias] = &p;
+        auto add(parameter_type&& p) -> void {
+            std::visit([this](auto&& param) {
+                for (const auto& alias : param->aliases) {
+                    lookup_table[alias] = p;
                 }
             }, p);
         }
@@ -35,7 +35,7 @@ namespace commline {
         template <std::size_t... I>
         auto generate_lookup_table(std::index_sequence<I...>) -> void {
             ((
-                add(std::get<I>(parameters))
+                add(parameter_type(&std::get<I>(parameters)))
             ), ...);
         }
 
@@ -106,8 +106,9 @@ namespace commline {
             }
         }
     public:
-        parameter_list(Parameters&&... parameters) :
-            parameters(std::make_tuple(parameters...))
+        template <typename... Args>
+        parameter_list(Args&&... params) :
+            parameters(std::make_tuple(params...))
         {
             generate_lookup_table(std::index_sequence_for<Parameters...>{});
         }

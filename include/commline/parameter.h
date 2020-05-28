@@ -19,9 +19,8 @@ namespace commline {
     protected:
         Value val;
 
-        template <typename Container>
         parameter(
-            Container aliases,
+            std::initializer_list<std::string> aliases,
             const std::string& description,
             Value default_value
         ) :
@@ -42,9 +41,8 @@ namespace commline {
     public:
         const std::string value_name;
 
-        template <typename Container>
         needs_value(
-            Container aliases,
+            std::initializer_list<std::string> aliases,
             const std::string& description,
             const std::string& value_name,
             Value default_value

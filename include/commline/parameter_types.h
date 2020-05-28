@@ -5,9 +5,8 @@
 namespace commline {
     class flag : public parameter<bool> {
     public:
-        template <typename Container>
         flag(
-            Container aliases,
+            std::initializer_list<std::string> aliases,
             const std::string& description
         ) :
             parameter<bool>(aliases, description, false)

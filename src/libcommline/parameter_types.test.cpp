@@ -1,21 +1,19 @@
-#include <commline/commline>
+#include <test.h>
 
-#include <gtest/gtest.h>
 #include <limits>
 #include <sstream>
 
-using namespace std::literals;
+// Defines an initializer list for option creation.
+#define ALIASES {"version", "v"}
 
 class ParameterTypesTest : public testing::Test {
 protected:
-    std::vector<std::string> aliases;
-    int default_int;
-    std::string default_string;
-    std::string description;
-    std::string value_name;
+    const int default_int;
+    const std::string default_string;
+    const std::string description;
+    const std::string value_name;
 
     ParameterTypesTest() :
-        aliases({"version", "v"}),
         default_int(2),
         default_string("Hello"),
         description("Print the version number."),
@@ -24,9 +22,9 @@ protected:
 };
 
 TEST_F(ParameterTypesTest, FlagParameter) {
-    auto flag = commline::flag(aliases, description);
+    auto flag = commline::flag(ALIASES, description);
 
-    ASSERT_EQ(aliases, flag.aliases);
+    ASSERT_EQ(std::vector<std::string>(ALIASES), flag.aliases);
     ASSERT_EQ(description, flag.description);
 
     ASSERT_FALSE(flag.value());
@@ -40,7 +38,7 @@ TEST_F(ParameterTypesTest, ValueParameter) {
     const auto new_value = "World"s;
 
     auto param = commline::string(
-        aliases,
+        ALIASES,
         description,
         value_name,
         default_string
@@ -58,7 +56,7 @@ TEST_F(ParameterTypesTest, IntegerSuccess) {
     const auto parsed_value = 10;
 
     auto param = commline::integer(
-        aliases,
+        ALIASES,
         description,
         value_name,
         default_int
@@ -73,7 +71,7 @@ TEST_F(ParameterTypesTest, IntegerInvalid) {
     const auto value = "bad"s;
 
     auto param = commline::integer(
-        aliases,
+        ALIASES,
         description,
         value_name,
         default_int
@@ -90,7 +88,7 @@ TEST_F(ParameterTypesTest, IntegerInvalid) {
 
 TEST_F(ParameterTypesTest, IntegerOutOfRange) {
     auto param = commline::integer(
-        aliases,
+        ALIASES,
         description,
         value_name,
         default_int
