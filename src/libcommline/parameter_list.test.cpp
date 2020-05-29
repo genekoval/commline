@@ -68,7 +68,7 @@ TEST_F(ParameterListTest, ShortOption) {
     ASSERT_TRUE(flag.value());
 }
 
-TEST_F(ParameterListTest, ShortSequence) {
+TEST_F(ParameterListTest, ShortFlagSequence) {
     auto list = make_list(
         commline::flag({"a"}, ""),
         commline::flag({"b"}, ""),
@@ -195,4 +195,54 @@ TEST_F(ParameterListTest, UnknownOption) {
     catch (const commline::cli_error& ex) {
         ASSERT_EQ("unknown option: e"s, ex.what());
     }
+}
+
+TEST_F(ParameterListTest, MissingValue) {
+    auto list = make_list(
+        commline::string({"name", "n"}, "", "", "default"),
+        commline::flag({"v"}, "")
+    );
+
+    try {
+        parse(list, "--name");
+        FAIL() << "No name was given.";
+    }
+    catch (const commline::cli_error& ex) {
+        ASSERT_EQ("missing value for: name"s, ex.what());
+    }
+
+    try {
+        parse(list, "-n");
+        FAIL() << "No name was given.";
+    }
+    catch (const commline::cli_error& ex) {
+        ASSERT_EQ("missing value for: n"s, ex.what());
+    }
+
+    try {
+        parse(list, "-nv", "hello");
+        FAIL() << "No name was given.";
+    }
+    catch (const commline::cli_error& ex) {
+        ASSERT_EQ("missing value for: n"s, ex.what());
+    }
+}
+
+TEST_F(ParameterListTest, SequenceValue) {
+    auto list = make_list(
+        commline::flag({"create", "c"}, ""),
+        commline::string({"file", "f"}, "", "", "/etc/commline/config"),
+        commline::flag({"verbose", "v"}, "")
+    );
+    auto& create = std::get<0>(list.options());
+    auto& file = std::get<1>(list.options());
+    auto& verbose = std::get<2>(list.options());
+
+    auto config = "/home/commline/.config"s;
+
+    parse(list, "-cvf", config);
+
+    ASSERT_TRUE(create.value());
+    ASSERT_EQ(config, file.value());
+    ASSERT_TRUE(verbose.value());
 }
