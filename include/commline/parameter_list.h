@@ -11,11 +11,7 @@ namespace commline {
     template <typename... Parameters>
     class parameter_list {
         using list_type = std::tuple<Parameters...>;
-        using parameter_type = std::variant<Parameters*...>;
-
-        template<std::size_t N>
-        using value_type =
-            typename std::tuple_element<N, list_type>::value_type;
+        using parameter_type = std::variant<flag*, integer*, number*, string*>;
 
         static auto missing_value(const std::string& alias) -> void {
             throw cli_error("missing value for: " + alias);
@@ -106,14 +102,14 @@ namespace commline {
             }
         }
     public:
-        template <typename... Args>
+        template <typename ...Args>
         parameter_list(Args&&... params) :
             parameters(std::make_tuple(params...))
         {
             generate_lookup_table(std::index_sequence_for<Parameters...>{});
         }
 
-        auto options() -> list_type { return parameters; }
+        auto options() -> list_type& { return parameters; }
 
         template <typename InputIt, typename Callable>
         auto parse(InputIt first, InputIt last, Callable handle_arg) -> void {
