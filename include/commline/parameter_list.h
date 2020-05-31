@@ -107,6 +107,8 @@ namespace commline {
             return std::get<N>(parameters).get();
         }
 
+        auto params() -> const list_type& { return parameters; }
+
         template <typename InputIt, typename Callable>
         auto parse(InputIt first, InputIt last, Callable handle_arg) -> void {
             while (first != last) {
