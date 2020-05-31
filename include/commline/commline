@@ -2,5 +2,4 @@
 
 #include <commline/error.h>
 #include <commline/parameter_list.h>
-#include <commline/parameter_types.h>
 #include <commline/parameter.h>

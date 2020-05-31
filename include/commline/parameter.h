@@ -1,58 +1,50 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace commline {
-    class has_description {
-    protected:
-        has_description(const std::string& description);
-    public:
+    struct describable {
         const std::string description;
+    protected:
+        describable(std::string_view description);
     };
 
-    template <typename Value>
-    class parameter : public has_description {
-    public:
-        using value_type = Value;
+    template <typename T>
+    struct parameter : public describable {
+        using value_type = T;
+
         const std::vector<std::string> aliases;
-    protected:
-        Value val;
+
+        T val;
 
         parameter(
             std::initializer_list<std::string> aliases,
-            const std::string& description,
-            Value default_value
+            std::string_view description
         ) :
-            has_description(description),
-            aliases(aliases),
-            val(default_value)
+            describable(description),
+            aliases(aliases)
         {}
-    public:
-        auto value() const -> const Value& {
-            return val;
-        }
+
+        auto get() const -> const T& { return val; }
     };
 
-    template <typename Derived, typename Value>
-    class needs_value : public parameter<Value> {
-    protected:
-        using input_type = const std::string&;
-    public:
-        const std::string value_name;
+    struct flag : public parameter<bool> {
+        using parameter::parameter;
 
-        needs_value(
+        auto set() -> void;
+    };
+
+    struct value : public parameter<std::string> {
+        const std::string name;
+
+        value(
             std::initializer_list<std::string> aliases,
-            const std::string& description,
-            const std::string& value_name,
-            Value default_value
-        ) :
-            parameter<Value>(aliases, description, default_value),
-            value_name(value_name)
-        {}
+            std::string_view description,
+            std::string_view name
+        );
 
-        auto set(input_type input) -> void {
-            this->val = Derived::parse(input);
-        }
+        auto set(std::string_view val) -> void;
     };
 }
