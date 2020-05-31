@@ -12,11 +12,8 @@ namespace commline {
     };
 
     template <typename T>
-    struct parameter : public describable {
-        using value_type = T;
-
-        const std::vector<std::string> aliases;
-
+    class parameter : public describable {
+    protected:
         T val;
 
         parameter(
@@ -26,12 +23,19 @@ namespace commline {
             describable(description),
             aliases(aliases)
         {}
+    public:
+        using value_type = T;
+
+        const std::vector<std::string> aliases;
 
         auto get() const -> const T& { return val; }
     };
 
     struct flag : public parameter<bool> {
-        using parameter::parameter;
+        flag(
+            std::initializer_list<std::string> aliases,
+            std::string_view description
+        );
 
         auto set() -> void;
     };

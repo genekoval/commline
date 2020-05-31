@@ -5,6 +5,15 @@ namespace commline {
         description(description)
     {}
 
+    flag::flag(
+        std::initializer_list<std::string> aliases,
+        std::string_view description
+    ) :
+        parameter(aliases, description)
+    {
+        val = false;
+    }
+
     auto flag::set() -> void { val = true; }
 
     value::value(
