@@ -17,16 +17,16 @@ protected:
 };
 
 TEST_F(CommandTest, Creation) {
-    commline::command(
+    commline::command_handler(
         "name",
         "desc",
         [](
             const commline::flag& help,
-            const commline::argv& $
+            const commline::argv& argv
         ) {
             ASSERT_TRUE(help.get());
-            ASSERT_EQ(1, $.size());
-            ASSERT_EQ("hello"s, $[0]);
+            ASSERT_EQ(1, argv.size());
+            ASSERT_EQ("hello"sv, argv[0]);
         },
         commline::flag({"help"}, "")
     )(args);

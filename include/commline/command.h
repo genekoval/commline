@@ -7,14 +7,15 @@
 #include <unordered_map>
 
 namespace commline {
-    class command : public describable {
+    class command_handler : public describable {
+        std::unordered_map<std::string_view, const command_handler*> commands;
         std::function<void(const argv&)> exec;
     public:
         const std::string name;
 
         template <typename Callable, typename ...Parameters>
-        command(
-            std::string_view name,
+        command_handler(
+            std::string_view name, 
             std::string_view description,
             Callable&& callable,
             Parameters&&... parameters
@@ -46,5 +47,18 @@ namespace commline {
         }
 
         auto operator()(const argv& args) -> void { exec(args); }
+
+        auto subcommand(const command_handler& c) -> void {
+            commands[c.name] = &c;
+        }
+    };
+
+    class command_repo {
+        std::vector<command_handler> storage;
+    public:
+        auto command(command_handler&& c) -> const command_handler& {
+            storage.push_back(std::move(c));
+            return storage.back();
+        }
     };
 }
