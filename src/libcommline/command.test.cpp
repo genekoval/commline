@@ -5,7 +5,7 @@
 
 class CommandTest : public testing::Test {
 protected:
-    static constexpr auto description = "desc"sv;
+    static constexpr auto description = "a test command"sv;
 
     std::vector<std::string> arguments;
 
@@ -32,35 +32,39 @@ TEST_F(CommandTest, Creation) {
             ASSERT_EQ("hello"sv, argv[0]);
         },
         commline::flag({"help"}, "")
-    )(make_argv({"--help", "hello"}));
+    ).execute(make_argv({"--help", "hello"}));
 }
 
 TEST_F(CommandTest, Subcommand) {
-    auto commands = commline::command(
-        "first",
+    constexpr auto argument = "argument";
+    constexpr auto cmd = "cmd";
+
+    auto parent = commline::command(
+        "root",
         description,
-        [](
-            const commline::argv& argv
-        ) {
+        [](const commline::argv& argv) {
             FAIL() << "Command should not run.";
         }
-    ).subcommand(
-        "second",
-        description,
-        [](
-            const commline::flag opt,
-            const commline::argv& argv
-        ) {
-            ASSERT_TRUE(opt.get());
-            ASSERT_EQ(1, argv.size());
-            ASSERT_EQ("arg", argv[0]);
-        },
-        commline::flag({"opt"}, "")
     );
 
-    auto argv = make_argv({
-        "second", "--opt", "arg"
-    });
+    auto child = commline::command(
+        cmd,
+        description,
+        [argument](const commline::argv& argv) {
+            ASSERT_EQ(1, argv.size());
+            ASSERT_EQ(argument, argv[0]);
+        }
+    );
 
-    commands.run(argv.begin(), argv.end());
+    auto root = commline::command_node(std::move(parent));
+    root.subcommand(std::move(child));
+
+    auto argv = make_argv({cmd, argument});
+
+    auto it = argv.begin();
+    auto end = argv.end();
+
+    auto& command = root.find(it, end);
+
+    command.execute(commline::argv(it, end));
 }

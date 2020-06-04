@@ -3,6 +3,7 @@
 #include <commline/argv.h>
 #include <commline/parameter_list.h>
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <unordered_map>
@@ -10,13 +11,13 @@
 namespace commline {
     class command : public describable {
         std::unordered_map<std::string, std::shared_ptr<command>> commands;
-        std::function<void(const argv&)> exec;
     public:
+        std::function<void(const argv&)> execute;
         const std::string name;
 
         template <typename Callable, typename ...Parameters>
         command(
-            std::string_view name, 
+            std::string_view name,
             std::string_view description,
             Callable&& callable,
             Parameters&&... parameters
@@ -25,7 +26,7 @@ namespace commline {
             describable(description),
             name(name)
         {
-            exec = [callable, parameters...](const argv& args) {
+            execute = [callable, parameters...](const argv& args) {
                 auto arguments = argv();
                 auto param_list = parameter_list<Parameters...>(parameters...);
 
@@ -46,25 +47,36 @@ namespace commline {
                 );
             };
         }
+    };
 
-        auto operator()(const argv& args) -> void { exec(args); }
-
-        template <typename ...Args>
-        auto subcommand(Args&&... args) -> command& {
-            auto c = std::make_shared<command>(std::forward<Args>(args)...);
-            commands.emplace(std::string(c->name), std::move(c));
-
-            return *this;
-        }
+    class command_node {
+        command cmd;
+        std::unordered_map<std::string, std::unique_ptr<command_node>> commands;
+    public:
+        command_node(command&& c) : cmd(c) {}
 
         template <typename InputIt>
-        auto run(InputIt first, InputIt last) -> void {
-            auto current = std::string(*first);
-
-            if (first != last && commands.count(current)) {
-                commands[current]->run(++first, last);
+        auto find(InputIt& first, InputIt last) -> command& {
+            auto node = commands.find(std::string(*first));
+            if (node != commands.end()) {
+                return node->second->find(++first, last);
             }
-            else exec(argv(first, last));
+            else return cmd;
+        }
+
+        auto subcommand(command&& c) -> command_node* {
+            auto name = std::string(c.name);
+
+            auto ret = commands.insert({
+                name,
+                std::make_unique<command_node>(std::move(c))
+            });
+
+            if (!ret.second) throw cli_error(
+                "Failed to register command: " + name
+            );
+
+            return ret.first->second.get();
         }
     };
 }
