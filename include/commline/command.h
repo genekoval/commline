@@ -64,7 +64,7 @@ namespace commline {
             else return cmd;
         }
 
-        auto subcommand(command&& c) -> command_node* {
+        auto subcommand(command&& c) -> command_node& {
             auto name = std::string(c.name);
 
             auto ret = commands.insert({
@@ -76,7 +76,7 @@ namespace commline {
                 "Failed to register command: " + name
             );
 
-            return ret.first->second.get();
+            return *(ret.first->second);
         }
     };
 }
