@@ -1,6 +1,7 @@
 #pragma once
 
 #include <commline/argv.h>
+#include <commline/context.h>
 #include <commline/parameter_list.h>
 
 #include <array>
@@ -12,7 +13,7 @@ namespace commline {
     class command : public describable {
         std::unordered_map<std::string, std::shared_ptr<command>> commands;
     public:
-        std::function<void(const argv&)> execute;
+        std::function<void(const app&, const argv&)> execute;
         const std::string name;
 
         template <typename Callable, typename ...Parameters>
@@ -26,7 +27,10 @@ namespace commline {
             describable(description),
             name(name)
         {
-            execute = [callable, parameters...](const argv& args) {
+            execute = [callable, parameters...](
+                const app& context, 
+                const argv& args
+            ) {
                 auto arguments = argv();
                 auto param_list = parameter_list<Parameters...>(parameters...);
 
@@ -38,13 +42,13 @@ namespace commline {
                     }
                 );
 
-                std::apply(
-                    callable,
-                    std::tuple_cat(
-                        param_list.params(),
-                        std::make_tuple(arguments)
-                    )
-                );
+                std::apply(callable, std::tuple_cat(
+                    std::make_tuple(
+                        context, 
+                        arguments
+                    ),
+                    param_list.params()
+                ));
             };
         }
     };
@@ -55,6 +59,8 @@ namespace commline {
     public:
         command_node(command&& c) : cmd(c) {}
 
+        auto description() -> std::string_view { return cmd.description; }
+
         template <typename InputIt>
         auto find(InputIt& first, InputIt last) -> command& {
             auto node = commands.find(std::string(*first));
@@ -64,17 +70,13 @@ namespace commline {
             else return cmd;
         }
 
-        auto subcommand(command&& c) -> command_node& {
-            auto name = std::string(c.name);
+        auto name() -> std::string_view { return cmd.name; }
 
+        auto subcommand(command&& c) -> command_node& {
             auto ret = commands.insert({
-                name,
+                c.name,
                 std::make_unique<command_node>(std::move(c))
             });
-
-            if (!ret.second) throw cli_error(
-                "Failed to register command: " + name
-            );
 
             return *(ret.first->second);
         }

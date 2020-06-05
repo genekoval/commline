@@ -6,6 +6,12 @@
 class CommandTest : public testing::Test {
 protected:
     static constexpr auto description = "a test command"sv;
+    static constexpr auto app_info = commline::app {
+        "testapp",
+        "0.0.0",
+        "Unit tests.",
+        "/app"
+    };
 
     std::vector<std::string> arguments;
 
@@ -19,20 +25,26 @@ protected:
     }
 };
 
-TEST_F(CommandTest, Creation) {
+TEST_F(CommandTest, Execution) {
     commline::command(
         "name",
         description,
         [](
-            const commline::flag& help,
-            const commline::argv& argv
+            const commline::app& app,
+            const commline::argv& argv,
+            const commline::flag& help
         ) {
+            ASSERT_EQ(app_info.name, app.name);
+            ASSERT_EQ(app_info.version, app.version);
+            ASSERT_EQ(app_info.description, app.description);
+            ASSERT_EQ(app_info.argv0, app.argv0);
+
             ASSERT_TRUE(help.get());
             ASSERT_EQ(1, argv.size());
             ASSERT_EQ("hello"sv, argv[0]);
         },
         commline::flag({"help"}, "")
-    ).execute(make_argv({"--help", "hello"}));
+    ).execute(app_info, make_argv({"--help", "hello"}));
 }
 
 TEST_F(CommandTest, Subcommand) {
@@ -42,7 +54,10 @@ TEST_F(CommandTest, Subcommand) {
     auto parent = commline::command(
         "root",
         description,
-        [](const commline::argv& argv) {
+        [](
+            const commline::app& app,
+            const commline::argv& argv
+        ) {
             FAIL() << "Command should not run.";
         }
     );
@@ -50,7 +65,10 @@ TEST_F(CommandTest, Subcommand) {
     auto child = commline::command(
         cmd,
         description,
-        [argument](const commline::argv& argv) {
+        [argument](
+            const commline::app& app,
+            const commline::argv& argv
+        ) {
             ASSERT_EQ(1, argv.size());
             ASSERT_EQ(argument, argv[0]);
         }
@@ -66,5 +84,5 @@ TEST_F(CommandTest, Subcommand) {
 
     auto& command = root.find(it, end);
 
-    command.execute(commline::argv(it, end));
+    command.execute(app_info, commline::argv(it, end));
 }
