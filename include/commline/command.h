@@ -10,9 +10,7 @@
 #include <unordered_map>
 
 namespace commline {
-    class command : public describable {
-        std::unordered_map<std::string, std::shared_ptr<command>> commands;
-    public:
+    struct command : public describable {
         std::function<void(const app&, const argv&)> execute;
         const std::string name;
 
@@ -28,7 +26,7 @@ namespace commline {
             name(name)
         {
             execute = [callable, parameters...](
-                const app& context, 
+                const app& context,
                 const argv& args
             ) {
                 auto arguments = argv();
@@ -44,7 +42,7 @@ namespace commline {
 
                 std::apply(callable, std::tuple_cat(
                     std::make_tuple(
-                        context, 
+                        context,
                         arguments
                     ),
                     param_list.params()

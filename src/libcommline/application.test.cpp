@@ -1,0 +1,72 @@
+#include <test.h>
+
+#include <commline/application.h>
+
+class ApplicationTest : public testing::Test {
+protected:
+    static constexpr auto name = "myapp"sv;
+    static constexpr auto version = "0.0.0"sv;
+    static constexpr auto description = "Test application."sv;
+    static constexpr auto executable = "./app"sv;
+
+    auto assert_app_info(const commline::app& app) -> void {
+        ASSERT_EQ(name, app.name);
+        ASSERT_EQ(version, app.version);
+        ASSERT_EQ(description, app.description);
+        ASSERT_EQ(executable, app.argv0);
+    }
+};
+
+TEST_F(ApplicationTest, Create) {
+    const auto args = commline::argv({executable});
+
+    commline::application(
+        name,
+        version,
+        description,
+        [this](
+            const commline::app& app,
+            const commline::argv& argv
+        ) {
+            assert_app_info(app);
+        }
+    ).run(args.begin(), args.end());
+}
+
+TEST_F(ApplicationTest, MulipleCommands) {
+    const auto args = commline::argv({
+        executable, "start", "--fork", "--threads", "4"
+    });
+
+    auto application = commline::application(
+        name,
+        version,
+        description,
+        [](
+            const commline::app& app,
+            const commline::argv& argv
+        ) {
+            FAIL() << "Command should not run.";
+        }
+    );
+
+    application.subcommand(commline::command(
+        "start",
+        "Start the server.",
+        [this](
+            const commline::app& app,
+            const commline::argv& argv,
+            const commline::flag& fork,
+            const commline::value& threads
+        ) {
+            assert_app_info(app);
+
+            ASSERT_TRUE(fork.get());
+            ASSERT_EQ("4", threads.get());
+        },
+        commline::flag({"fork"}, "Fork the process."),
+        commline::value({"threads"}, "Number of threads.", "count")
+    ));
+
+    application.run(args.begin(), args.end());
+}

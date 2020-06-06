@@ -1,5 +1,7 @@
 #pragma once
 
-#include <commline/error.h>
-#include <commline/parameter_list.h>
-#include <commline/parameter.h>
+#include "application.h"
+#include "context.h"
+#include "error.h"
+#include "parameter_list.h"
+#include "parameter.h"

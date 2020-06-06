@@ -1,5 +1,7 @@
 #include <test.h>
 
+#include <commline/parameter_list.h>
+
 #include <algorithm>
 #include <functional>
 

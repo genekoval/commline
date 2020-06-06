@@ -9,8 +9,8 @@ namespace commline {
     public:
         template <typename Callable, typename ...Parameters>
         application(
-            std::string_view name, 
-            std::string_view version, 
+            std::string_view name,
+            std::string_view version,
             std::string_view description,
             Callable&& callable,
             Parameters&&... parameters
@@ -28,7 +28,7 @@ namespace commline {
         auto run(InputIt first, InputIt last) -> int {
             const auto argv0 = *first;
             auto& cmd = command_tree.find(first, last);
-            
+
             try {
                 cmd.execute(
                     app {
@@ -39,17 +39,21 @@ namespace commline {
                     },
                     commline::argv(first, last)
                 );
-            } 
+            }
             catch (const std::system_error& ex) {
-                std::err << ex.what() << std::endl;
+                std::cerr << ex.what() << std::endl;
                 return ex.code().value();
             }
             catch (const std::exception& ex) {
-                std::err << ex.what() << std::endl;
+                std::cerr << ex.what() << std::endl;
                 return EXIT_FAILURE;
             }
 
             return EXIT_SUCCESS;
         };
+
+        auto subcommand(command&& cmd) -> command_node& {
+            return command_tree.subcommand(std::move(cmd));
+        }
     };
 }

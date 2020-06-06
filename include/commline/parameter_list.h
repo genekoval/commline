@@ -1,5 +1,6 @@
 #pragma once
 
+#include <commline/error.h>
 #include <commline/parameter.h>
 
 #include <string>
