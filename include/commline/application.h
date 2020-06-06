@@ -2,6 +2,9 @@
 
 #include <commline/command.h>
 
+#include <system_error>
+#include <iostream>
+
 namespace commline {
     class application {
         command_node command_tree;

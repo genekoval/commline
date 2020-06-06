@@ -2,7 +2,7 @@
 
 #include <commline/argv.h>
 #include <commline/context.h>
-#include <commline/parameter_list.h>
+#include <commline/option_list.h>
 
 #include <array>
 #include <functional>
@@ -30,9 +30,9 @@ namespace commline {
                 const argv& args
             ) {
                 auto arguments = argv();
-                auto param_list = parameter_list<Parameters...>(parameters...);
+                auto options = option_list<Parameters...>(parameters...);
 
-                param_list.parse(
+                options.parse(
                     args.begin(),
                     args.end(),
                     [&arguments](std::string_view arg) {
@@ -45,7 +45,7 @@ namespace commline {
                         context,
                         arguments
                     ),
-                    param_list.params()
+                    options.extract()
                 ));
             };
         }

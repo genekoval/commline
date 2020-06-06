@@ -32,14 +32,14 @@ TEST_F(CommandTest, Execution) {
         [](
             const commline::app& app,
             const commline::argv& argv,
-            const commline::flag& help
+            bool help
         ) {
             ASSERT_EQ(app_info.name, app.name);
             ASSERT_EQ(app_info.version, app.version);
             ASSERT_EQ(app_info.description, app.description);
             ASSERT_EQ(app_info.argv0, app.argv0);
 
-            ASSERT_TRUE(help.get());
+            ASSERT_TRUE(help);
             ASSERT_EQ(1, argv.size());
             ASSERT_EQ("hello"sv, argv[0]);
         },

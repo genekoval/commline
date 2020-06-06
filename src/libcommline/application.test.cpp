@@ -2,6 +2,8 @@
 
 #include <commline/application.h>
 
+#include <string_view>
+
 class ApplicationTest : public testing::Test {
 protected:
     static constexpr auto name = "myapp"sv;
@@ -56,16 +58,20 @@ TEST_F(ApplicationTest, MulipleCommands) {
         [this](
             const commline::app& app,
             const commline::argv& argv,
-            const commline::flag& fork,
-            const commline::value& threads
+            bool fork,
+            std::string_view threads
         ) {
             assert_app_info(app);
 
-            ASSERT_TRUE(fork.get());
-            ASSERT_EQ("4", threads.get());
+            ASSERT_TRUE(fork);
+            ASSERT_EQ("4"sv, threads);
         },
         commline::flag({"fork"}, "Fork the process."),
-        commline::value({"threads"}, "Number of threads.", "count")
+        commline::option<std::string_view>(
+            {"threads"},
+            "Number of threads.",
+            "count"
+        )
     ));
 
     application.run(args.begin(), args.end());

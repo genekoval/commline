@@ -1,28 +1,29 @@
 #include <test.h>
 
-#include <commline/parameter_list.h>
+#include <commline/option_list.h>
 
 #include <algorithm>
 #include <functional>
 
 class ParameterListTest : public testing::Test {
 protected:
+    std::vector<std::string> argv;
     std::vector<std::string> arguments;
     std::function<void(std::string_view)> add_arg = [this](auto arg) {
         arguments.emplace_back(arg);
     };
 
-    template <typename... Parameters>
+    template <typename ...Options>
     auto make_list(
-        Parameters&&... parameters
-    ) -> commline::parameter_list<Parameters...> {
-        return commline::parameter_list<Parameters...>(parameters...);
+        Options&&... options
+    ) -> commline::option_list<Options...> {
+        return commline::option_list<Options...>(options...);
     }
 
-    template <typename ParamList, typename... Args>
-    auto parse(ParamList& list, Args&&... args) -> void {
+    template <typename OptionList, typename ...Args>
+    auto parse(OptionList& list, Args&&... args) -> void {
         arguments.clear();
-        const auto argv = std::array<std::string, sizeof...(Args)>{args...};
+        argv = std::vector<std::string>({args...});
         list.parse(argv.begin(), argv.end(), add_arg);
     }
 };
@@ -125,7 +126,7 @@ TEST_F(ParameterListTest, EndOfOptions) {
 }
 
 TEST_F(ParameterListTest, ValueOptionLong) {
-    auto list = make_list(commline::value({"name"}, "", ""));
+    auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
 
     parse(list, "--name", "commline");
 
@@ -133,7 +134,7 @@ TEST_F(ParameterListTest, ValueOptionLong) {
 }
 
 TEST_F(ParameterListTest, ValueOptionShort) {
-    auto list = make_list(commline::value({"n"}, "", ""));
+    auto list = make_list(commline::option<std::string_view>({"n"}, "", ""));
 
     parse(list, "-n", "commline");
 
@@ -162,7 +163,7 @@ TEST_F(ParameterListTest, UnknownOption) {
 
 TEST_F(ParameterListTest, MissingValue) {
     auto list = make_list(
-        commline::value({"name", "n"}, "", ""),
+        commline::option<std::string_view>({"name", "n"}, "", ""),
         commline::flag({"v"}, "")
     );
 
@@ -194,7 +195,7 @@ TEST_F(ParameterListTest, MissingValue) {
 TEST_F(ParameterListTest, SequenceValue) {
     auto list = make_list(
         commline::flag({"create", "c"}, ""),
-        commline::value({"file", "f"}, "", ""),
+        commline::option<std::string_view>({"file", "f"}, "", ""),
         commline::flag({"verbose", "v"}, "")
     );
 
