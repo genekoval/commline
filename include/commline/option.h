@@ -1,6 +1,7 @@
 #pragma once
 
 #include <commline/argv.h>
+#include <commline/parse.h>
 
 #include <string>
 #include <string_view>
@@ -30,7 +31,7 @@ namespace commline {
 
         const std::vector<std::string> aliases;
 
-        auto get() const -> const T& { return value; }
+        auto get() const -> const T { return value; }
     };
 
     struct no_argument : public option_base<bool> {
@@ -80,9 +81,6 @@ namespace commline {
 
         auto get() const -> type;
     };
-
-    template <typename T>
-    auto parse(std::string_view argument) -> T { return argument; }
 
     template <typename T>
     struct option {

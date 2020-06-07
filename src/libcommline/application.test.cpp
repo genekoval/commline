@@ -59,15 +59,15 @@ TEST_F(ApplicationTest, MulipleCommands) {
             const commline::app& app,
             const commline::argv& argv,
             bool fork,
-            std::string_view threads
+            int threads
         ) {
             assert_app_info(app);
 
             ASSERT_TRUE(fork);
-            ASSERT_EQ("4"sv, threads);
+            ASSERT_EQ(4, threads);
         },
         commline::flag({"fork"}, "Fork the process."),
-        commline::option<std::string_view>(
+        commline::option<int>(
             {"threads"},
             "Number of threads.",
             "count"
