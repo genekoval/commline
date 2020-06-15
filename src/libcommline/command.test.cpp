@@ -29,6 +29,7 @@ TEST_F(CommandTest, Execution) {
     commline::command(
         "name",
         description,
+        commline::options(commline::flag({"help"}, "")),
         [](
             const commline::app& app,
             const commline::argv& argv,
@@ -42,16 +43,15 @@ TEST_F(CommandTest, Execution) {
             ASSERT_TRUE(help);
             ASSERT_EQ(1, argv.size());
             ASSERT_EQ("hello"sv, argv[0]);
-        },
-        commline::flag({"help"}, "")
-    ).execute(app_info, make_argv({"--help", "hello"}));
+        }
+    )->execute(app_info, make_argv({"--help", "hello"}));
 }
 
 TEST_F(CommandTest, Subcommand) {
     constexpr auto argument = "argument";
     constexpr auto cmd = "cmd";
 
-    auto parent = commline::command(
+    auto root = commline::command(
         "root",
         description,
         [](
@@ -74,15 +74,14 @@ TEST_F(CommandTest, Subcommand) {
         }
     );
 
-    auto root = commline::command_node(std::move(parent));
-    root.subcommand(std::move(child));
+    root->subcommand(std::move(child));
 
     auto argv = make_argv({cmd, argument});
 
     auto it = argv.begin();
     auto end = argv.end();
 
-    auto& command = root.find(it, end);
+    auto& command = root->find(it, end);
 
     command.execute(app_info, commline::argv(it, end));
 }

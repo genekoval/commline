@@ -34,7 +34,7 @@ namespace commline {
             throw cli_error("missing value for: " + std::string(alias));
         }
 
-        tuple_type options;
+        tuple_type opts;
         std::unordered_map<std::string_view, variant_type> option_map;
 
         auto add(variant_type&& var) -> void {
@@ -49,7 +49,7 @@ namespace commline {
         auto generate_map(std::index_sequence<I...>) -> void {
             ((
                 add(variant_type(
-                    &(std::get<I>(options).base)
+                    &(std::get<I>(opts).base)
                 ))
             ), ...);
         }
@@ -58,7 +58,7 @@ namespace commline {
         auto get_values(
             std::index_sequence<I...>
         ) const -> std::tuple<typename Options::type...> {
-            return std::make_tuple(std::get<I>(options).get()...);
+            return std::make_tuple(std::get<I>(opts).get()...);
         }
 
         auto find(std::string_view alias) -> variant_type& {
@@ -112,18 +112,17 @@ namespace commline {
             }
         }
     public:
-        template <typename ...Args>
-        option_list(
-            Args&&... args
-        ) :
-            options(std::make_tuple(args...))
-        {
+        option_list(tuple_type&& opts) : opts(std::move(opts)) {
             generate_map(std::index_sequence_for<Options...>());
         }
 
+        option_list(Options&&... opts) :
+            option_list(std::make_tuple(std::move(opts)...))
+        {}
+
         template <std::size_t N>
         auto get() const -> type<N> {
-            return std::get<N>(options).get();
+            return std::get<N>(opts).get();
         }
 
         auto extract() const -> std::tuple<typename Options::type...> {
@@ -157,4 +156,9 @@ namespace commline {
             }
         }
     };
+
+    template <typename ...Options>
+    auto options(Options&&... opts) -> std::tuple<Options...> {
+        return std::make_tuple(std::move(opts)...);
+    }
 }

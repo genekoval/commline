@@ -17,7 +17,8 @@ protected:
     auto make_list(
         Options&&... options
     ) -> commline::option_list<Options...> {
-        return commline::option_list<Options...>(options...);
+        return commline::option_list<Options...>(
+            std::forward<Options>(options)...);
     }
 
     template <typename OptionList, typename ...Args>

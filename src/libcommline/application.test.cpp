@@ -20,7 +20,7 @@ protected:
 };
 
 TEST_F(ApplicationTest, Create) {
-    const auto args = commline::argv({executable});
+    auto args = commline::argv({executable});
 
     commline::application(
         name,
@@ -55,6 +55,14 @@ TEST_F(ApplicationTest, MulipleCommands) {
     application.subcommand(commline::command(
         "start",
         "Start the server.",
+        commline::options(
+            commline::flag({"fork"}, "Fork the process."),
+            commline::option<int>(
+                {"threads"},
+                "Number of threads.",
+                "count"
+            )
+        ),
         [this](
             const commline::app& app,
             const commline::argv& argv,
@@ -65,13 +73,7 @@ TEST_F(ApplicationTest, MulipleCommands) {
 
             ASSERT_TRUE(fork);
             ASSERT_EQ(4, threads);
-        },
-        commline::flag({"fork"}, "Fork the process."),
-        commline::option<int>(
-            {"threads"},
-            "Number of threads.",
-            "count"
-        )
+        }
     ));
 
     application.run(args.begin(), args.end());

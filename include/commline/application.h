@@ -6,38 +6,43 @@
 #include <iostream>
 
 namespace commline {
-    class application {
-        command_node command_tree;
-        const std::string version;
+    template <typename Callable, typename ...Options>
+    class application : public command_impl<Callable, Options...> {
     public:
-        template <typename Callable, typename ...Parameters>
+        const std::string version;
+
         application(
             std::string_view name,
             std::string_view version,
             std::string_view description,
-            Callable&& callable,
-            Parameters&&... parameters
+            Callable fn
         ) :
-            command_tree(command(
-                name,
-                description,
-                std::forward<Callable>(callable),
-                std::forward<Parameters>(parameters)...
-            )),
+            command_impl<Callable, Options...>(name, description, fn),
+            version(version)
+        {}
+
+        application(
+            std::string_view name,
+            std::string_view version,
+            std::string_view description,
+            std::tuple<Options...>&& opts,
+            Callable fn
+        ) :
+            command_impl<Callable, Options...>(name, description, opts, fn),
             version(version)
         {}
 
         template <typename InputIt>
         auto run(InputIt first, InputIt last) -> int {
             const auto argv0 = *first;
-            auto& cmd = command_tree.find(first, last);
+            auto& cmd = this->find(first, last);
 
             try {
                 cmd.execute(
                     app {
-                        command_tree.name(),
+                        this->name,
                         version,
-                        command_tree.description(),
+                        this->description,
                         argv0
                     },
                     commline::argv(first, last)
@@ -54,9 +59,5 @@ namespace commline {
 
             return EXIT_SUCCESS;
         };
-
-        auto subcommand(command&& cmd) -> command_node& {
-            return command_tree.subcommand(std::move(cmd));
-        }
     };
 }

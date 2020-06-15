@@ -100,29 +100,4 @@ namespace commline {
             return parse<T>(base.get());
         }
     };
-
-    template <typename T>
-    struct options {
-        using type = std::vector<T>;
-
-        multiple_arguments base;
-
-        options(
-            std::initializer_list<std::string> aliases,
-            std::string_view description,
-            std::string_view argument_name
-        ) :
-            base(aliases, description, argument_name)
-        {}
-
-        auto get() const -> type {
-            auto values = type();
-
-            for (const auto& value : base.get()) {
-                values.push_back(parse<T>(value));
-            }
-
-            return values;
-        }
-    };
 }
