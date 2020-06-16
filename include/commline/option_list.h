@@ -135,11 +135,11 @@ namespace commline {
                 constexpr auto l = std::string_view("--");
                 constexpr auto s = std::string_view("-");
 
-                const auto current = std::string_view(*first++);
+                const auto current = std::string_view(*(first++));
 
                 // A '--' by itself signifies the end of options.
                 // Everything that follows is an argument.
-                if (current == l) while (first != last) handle_arg(*first++);
+                if (current == l) while (first != last) handle_arg(*(first++));
                 // A '-' by itself is treated as an argument.
                 else if (current == s) handle_arg(current);
                 else if (current.starts_with(l)) handle_long_parameter(

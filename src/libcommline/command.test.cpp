@@ -81,7 +81,7 @@ TEST_F(CommandTest, Subcommand) {
     auto it = argv.begin();
     auto end = argv.end();
 
-    auto& command = root->find(it, end);
+    auto command = root->find(it, end);
 
-    command.execute(app_info, commline::argv(it, end));
+    command->execute(app_info, commline::argv(it, end));
 }

@@ -22,7 +22,7 @@ protected:
 TEST_F(ApplicationTest, Create) {
     auto args = commline::argv({executable});
 
-    commline::application(
+    ASSERT_EQ(0, commline::application(
         name,
         version,
         description,
@@ -32,7 +32,7 @@ TEST_F(ApplicationTest, Create) {
         ) {
             assert_app_info(app);
         }
-    ).run(args.begin(), args.end());
+    ).run(args.begin(), args.end()));
 }
 
 TEST_F(ApplicationTest, MulipleCommands) {
@@ -56,7 +56,10 @@ TEST_F(ApplicationTest, MulipleCommands) {
         "start",
         "Start the server.",
         commline::options(
-            commline::flag({"fork"}, "Fork the process."),
+            commline::flag(
+                {"fork"},
+                "Fork the process."
+            ),
             commline::option<int>(
                 {"threads"},
                 "Number of threads.",
@@ -76,5 +79,5 @@ TEST_F(ApplicationTest, MulipleCommands) {
         }
     ));
 
-    application.run(args.begin(), args.end());
+    ASSERT_EQ(0, application.run(args.begin(), args.end()));
 }

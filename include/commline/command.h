@@ -23,23 +23,25 @@ namespace commline {
         virtual auto execute(const app& context, const argv& args) -> void = 0;
 
         template <typename InputIt>
-        auto find(InputIt& first, InputIt last) -> command_node& {
-            auto node = commands.find(std::string(*first));
+        auto find(InputIt& first, InputIt last) -> command_node* {
+            if (first != last) {
+                auto node = commands.find(std::string(*first));
 
-            if (node != commands.end()) {
-                return node->second->find(++first, last);
+                if (node != commands.end()) {
+                    return node->second->find(++first, last);
+                }
             }
 
-            return *this;
+            return this;
         }
 
-        auto subcommand(std::unique_ptr<command_node>&& node) -> command_node& {
+        auto subcommand(std::unique_ptr<command_node>&& node) -> command_node* {
             auto result = commands.insert({
                 node->name,
                 std::move(node)
             });
 
-            return *(result.first->second);
+            return result.first->second.get();
         }
     };
 
