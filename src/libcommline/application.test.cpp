@@ -20,7 +20,8 @@ protected:
 };
 
 TEST_F(ApplicationTest, Create) {
-    auto args = commline::argv({executable});
+    const int argc = 1;
+    const char* argv[argc] = { "./app" };
 
     ASSERT_EQ(0, commline::application(
         name,
@@ -32,13 +33,14 @@ TEST_F(ApplicationTest, Create) {
         ) {
             assert_app_info(app);
         }
-    ).run(args.begin(), args.end()));
+    ).run(argc, argv));
 }
 
 TEST_F(ApplicationTest, MulipleCommands) {
-    const auto args = commline::argv({
-        executable, "start", "--fork", "--threads", "4"
-    });
+    const int argc = 5;
+    const char* argv[argc] = {
+        "./app", "start", "--fork", "--threads", "4"
+    };
 
     auto application = commline::application(
         name,
@@ -79,5 +81,5 @@ TEST_F(ApplicationTest, MulipleCommands) {
         }
     ));
 
-    ASSERT_EQ(0, application.run(args.begin(), args.end()));
+    ASSERT_EQ(0, application.run(argc, argv));
 }

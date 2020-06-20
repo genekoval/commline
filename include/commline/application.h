@@ -32,8 +32,11 @@ namespace commline {
             version(version)
         {}
 
-        template <typename InputIt>
-        auto run(InputIt first, InputIt last) -> int {
+        auto run(int argc, const char** argv) -> int {
+            const auto args = commline::collect(argc, argv);
+            auto first = args.begin();
+            auto last = args.end();
+
             const auto argv0 = *(first++);
             auto cmd = this->find(first, last);
 
@@ -44,7 +47,7 @@ namespace commline {
                         this->description,
                         argv0
                     },
-                    argv(first, last)
+                    commline::argv(first, last)
                 );
             }
             catch (const std::system_error& ex) {

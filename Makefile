@@ -5,7 +5,7 @@ STD := gnu++2a
 
 library = lib$(project)
 
-install = $(project) $(library)
+install = $(library)
 # targets := $(install) sample
 targets := $(library)
 
