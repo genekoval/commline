@@ -3,6 +3,7 @@
 #include <commline/argv.h>
 #include <commline/parse.h>
 
+#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -31,7 +32,7 @@ namespace commline {
 
         const std::vector<std::string> aliases;
 
-        auto get() const -> const T { return value; }
+        auto get() const -> T { return value; }
     };
 
     struct no_argument : public option_base<bool> {
@@ -49,7 +50,10 @@ namespace commline {
         takes_argument(std::string_view argument_name);
     };
 
-    struct single_argument : option_base<std::string_view>, takes_argument {
+    struct single_argument :
+        option_base<std::optional<std::string_view>>,
+        takes_argument
+    {
         single_argument(
             std::initializer_list<std::string> aliases,
             std::string_view description,
@@ -87,17 +91,31 @@ namespace commline {
         using type = T;
 
         single_argument base;
+        const T default_value;
 
         option(
             std::initializer_list<std::string> aliases,
             std::string_view description,
             std::string_view argument_name
         ) :
-            base(aliases, description, argument_name)
+            base(aliases, description, argument_name),
+            default_value(T())
         {}
 
-        auto get() const -> type {
-            return parse<T>(base.get());
+        option(
+            std::initializer_list<std::string> aliases,
+            std::string_view description,
+            std::string_view argument_name,
+            T&& default_value
+        ) :
+            base(aliases, description, argument_name),
+            default_value(std::move(default_value))
+        {}
+
+        auto get() const -> T {
+            auto value = base.get();
+            if (value) return parse<T>(*value);
+            return default_value;
         }
     };
 }
