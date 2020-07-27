@@ -28,7 +28,12 @@ namespace commline {
             std::tuple<Options...>&& opts,
             Callable fn
         ) :
-            command_impl<Callable, Options...>(name, description, opts, fn),
+            command_impl<Callable, Options...>(
+                name,
+                description,
+                std::move(opts),
+                fn
+            ),
             version(version)
         {}
 
