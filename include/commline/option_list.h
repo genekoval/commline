@@ -73,14 +73,14 @@ namespace commline {
         template <typename InputIt>
         auto handle_long_parameter(
             std::string_view alias,
-            InputIt first,
+            InputIt& first,
             InputIt last
         ) -> void {
             std::visit(overloaded {
                 [&](no_argument* opt) { opt->set(); },
                 [&](auto* opt) {
                     if (first == last) missing_value(alias);
-                    opt->set(*first);
+                    opt->set(*first++);
                 }
             }, find(alias));
         }
@@ -88,7 +88,7 @@ namespace commline {
         template <typename InputIt>
         auto handle_short_parameter(
             std::string_view sequence,
-            InputIt first,
+            InputIt& first,
             InputIt last
         ) -> void {
             auto it = sequence.begin();
@@ -106,7 +106,7 @@ namespace commline {
                         // options in the sequence or there are no more
                         // args after the sequence, the value is missing.
                         if (it != end || first == last) missing_value(alias);
-                        opt->set(*first);
+                        opt->set(*first++);
                     }
                 }, find(alias));
             }

@@ -129,17 +129,21 @@ TEST_F(ParameterListTest, EndOfOptions) {
 TEST_F(ParameterListTest, ValueOptionLong) {
     auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
 
-    parse(list, "--name", "commline");
+    parse(list, "--name", "commline", "hello");
 
     ASSERT_EQ("commline", list.get<0>());
+    ASSERT_EQ(1, arguments.size());
+    ASSERT_EQ("hello", arguments[0]);
 }
 
 TEST_F(ParameterListTest, ValueOptionShort) {
     auto list = make_list(commline::option<std::string_view>({"n"}, "", ""));
 
-    parse(list, "-n", "commline");
+    parse(list, "-n", "commline", "hello");
 
     ASSERT_EQ("commline", list.get<0>());
+    ASSERT_EQ(1, arguments.size());
+    ASSERT_EQ("hello", arguments[0]);
 }
 
 TEST_F(ParameterListTest, UnknownOption) {
