@@ -1,5 +1,6 @@
 #pragma once
 
+#include <sstream>
 #include <string_view>
 
 namespace commline {
@@ -9,4 +10,6 @@ namespace commline {
         const std::string_view description;
         const std::string_view argv0;
     };
+
+    auto print_version(std::ostream& os, const app& a) -> void;
 }
