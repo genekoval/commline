@@ -6,8 +6,13 @@
 #include <iostream>
 
 namespace commline {
+    using error_handler_t = auto (*)(const std::exception& ex) -> void;
+
+    auto print_error(const std::exception& ex) -> void;
+
     template <typename Callable, typename ...Options>
     class application : public command_impl<Callable, Options...> {
+        error_handler_t error_handler = &print_error;
     public:
         const std::string version;
 
@@ -37,6 +42,10 @@ namespace commline {
             version(version)
         {}
 
+        auto on_error(error_handler_t handler) -> void {
+            error_handler = handler;
+        }
+
         auto run(int argc, const char** argv) -> int {
             const auto args = commline::collect(argc, argv);
             auto first = args.begin();
@@ -56,11 +65,11 @@ namespace commline {
                 );
             }
             catch (const std::system_error& ex) {
-                std::cerr << ex.what() << std::endl;
+                error_handler(ex);
                 return ex.code().value();
             }
             catch (const std::exception& ex) {
-                std::cerr << ex.what() << std::endl;
+                error_handler(ex);
                 return EXIT_FAILURE;
             }
 
