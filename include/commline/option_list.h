@@ -30,6 +30,7 @@ namespace commline {
         using type =
             std::tuple_element<N, tuple_type>::type::type;
 
+        [[noreturn]]
         static auto missing_value(std::string_view alias) -> void {
             throw cli_error("missing value for: " + std::string(alias));
         }
@@ -72,13 +73,35 @@ namespace commline {
 
         template <typename InputIt>
         auto handle_long_parameter(
-            std::string_view alias,
+            std::string_view token,
             InputIt& first,
             InputIt last
         ) -> void {
+            const auto equals_sign = token.find("=");
+            const auto has_equals_sign = equals_sign != std::string_view::npos;
+            const auto alias = has_equals_sign ?
+                token.substr(0, equals_sign) : token;
+
             std::visit(overloaded {
-                [&](no_argument* opt) { opt->set(); },
+                [&](no_argument* opt) {
+                    if (has_equals_sign) {
+                        throw cli_error(
+                            "option '" +
+                            std::string(alias) +
+                            "' does not support values"
+                        );
+                    }
+
+                    opt->set();
+                },
                 [&](auto* opt) {
+                    if (has_equals_sign) {
+                        if (equals_sign == token.size() - 1)
+                            missing_value(alias);
+                        opt->set(token.substr(equals_sign + 1));
+                        return;
+                    }
+
                     if (first == last) missing_value(alias);
                     opt->set(*first++);
                 }

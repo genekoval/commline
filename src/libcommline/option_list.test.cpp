@@ -136,6 +136,38 @@ TEST_F(ParameterListTest, ValueOptionLong) {
     ASSERT_EQ("hello", arguments[0]);
 }
 
+TEST_F(ParameterListTest, LongOptionEquals) {
+    auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
+
+    parse(list, "--name=commline");
+
+    ASSERT_EQ("commline", list.get<0>());
+}
+
+TEST_F(ParameterListTest, LongOptionEqualsMissingValue) {
+    auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
+
+    try {
+        parse(list, "--name=");
+        FAIL() << "option value missing";
+    }
+    catch (const commline::cli_error& ex) {
+        ASSERT_EQ("missing value for: name"s, ex.what());
+    }
+}
+
+TEST_F(ParameterListTest, FlagEquals) {
+    auto list = make_list(commline::flag({"version"}, ""));
+
+    try {
+        parse(list, "--version=foo");
+        FAIL() << "flag given a value";
+    }
+    catch (const commline::cli_error& ex) {
+        ASSERT_EQ("option 'version' does not support values"s, ex.what());
+    }
+}
+
 TEST_F(ParameterListTest, ValueOptionShort) {
     auto list = make_list(commline::option<std::string_view>({"n"}, "", ""));
 
