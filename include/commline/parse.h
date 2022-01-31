@@ -7,5 +7,8 @@ namespace commline {
     auto parse(std::string_view argument) -> T { return argument; }
 
     template <>
+    auto parse(std::string_view argument) -> std::string;
+
+    template <>
     auto parse(std::string_view argument) -> int;
 }
