@@ -244,3 +244,52 @@ TEST_F(ParameterListTest, SequenceValue) {
     ASSERT_EQ(config, list.get<1>());
     ASSERT_TRUE(list.get<2>());
 }
+
+TEST_F(ParameterListTest, EmptyList) {
+    auto list = make_list(
+        commline::list<std::string_view>({"include"}, "", "")
+    );
+
+    parse(list, "");
+
+    ASSERT_TRUE(list.get<0>().empty());
+}
+
+TEST_F(ParameterListTest, ListOne) {
+    auto list = make_list(
+        commline::list<std::string_view>({"include"}, "", "")
+    );
+
+    parse(list, "--include", "foo");
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(1, result.size());
+    ASSERT_EQ("foo", result.front());
+}
+
+TEST_F(ParameterListTest, ListMany) {
+    auto list = make_list(
+        commline::list<std::string_view>({"include"}, "", "")
+    );
+
+    parse(list, "--include=foo", "--include=bar");
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(2, result.size());
+    ASSERT_EQ("foo", result[0]);
+    ASSERT_EQ("bar", result[1]);
+}
+
+TEST_F(ParameterListTest, ListNoValue) {
+    auto list = make_list(
+        commline::list<std::string_view>({"include"}, "", "")
+    );
+
+    try {
+        parse(list, "--include");
+        FAIL() << "No value provided";
+    }
+    catch (const commline::cli_error& ex) {
+        ASSERT_EQ("missing value for: include"s, ex.what());
+    }
+}

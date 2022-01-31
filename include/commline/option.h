@@ -63,7 +63,10 @@ namespace commline {
         auto set(std::string_view argument) -> void;
     };
 
-    struct multiple_arguments : option_base<argv>, takes_argument {
+    struct multiple_arguments :
+        option_base<std::vector<std::string_view>>,
+        takes_argument
+    {
         multiple_arguments(
             std::initializer_list<std::string> aliases,
             std::string_view description,
@@ -116,6 +119,32 @@ namespace commline {
             auto value = base.get();
             if (value) return parse<T>(*value);
             return default_value;
+        }
+    };
+
+    template <typename T>
+    struct list {
+        using type = std::vector<T>;
+
+        multiple_arguments base;
+
+        list(
+            std::initializer_list<std::string> aliases,
+            std::string_view description,
+            std::string_view argument_name
+        ) :
+            base(aliases, description, argument_name)
+        {}
+
+        auto get() const -> type {
+            const auto value = base.get();
+            auto result = type();
+
+            for (const auto item : value) {
+                result.push_back(parse<T>(item));
+            }
+
+            return result;
         }
     };
 }
