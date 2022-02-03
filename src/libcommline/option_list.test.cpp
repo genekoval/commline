@@ -30,7 +30,7 @@ protected:
 };
 
 TEST_F(ParameterListTest, NoOptions) {
-    auto list = make_list(commline::flag({"help"}, ""));
+    auto list = make_list(commline::flag({"hello"}, ""));
 
     parse(list);
 
@@ -51,11 +51,11 @@ TEST_F(ParameterListTest, ArgumentsOnly) {
 }
 
 TEST_F(ParameterListTest, LongOption) {
-    auto list = make_list(commline::flag({"help"}, ""));
+    auto list = make_list(commline::flag({"hello"}, ""));
 
     ASSERT_FALSE(list.get<0>());
 
-    parse(list, "--help");
+    parse(list, "--hello");
 
     ASSERT_TRUE(list.get<0>());
 }
@@ -86,7 +86,7 @@ TEST_F(ParameterListTest, ShortFlagSequence) {
 
 TEST_F(ParameterListTest, MixedParams) {
     auto list = make_list(
-        commline::flag({"help", "h"}, ""),
+        commline::flag({"hello", "h"}, ""),
         commline::flag({"version", "v"}, ""),
         commline::flag({"a"}, ""),
         commline::flag({"b"}, ""),
@@ -96,7 +96,7 @@ TEST_F(ParameterListTest, MixedParams) {
     const auto hello = "hello"s;
     const auto world = "world"s;
 
-    parse(list, hello, "--help", "-v", world, "-abc");
+    parse(list, hello, "--hello", "-v", world, "-abc");
 
     for (auto value : {
         list.get<0>(),
@@ -113,10 +113,10 @@ TEST_F(ParameterListTest, MixedParams) {
 
 TEST_F(ParameterListTest, EndOfOptions) {
     auto list = make_list(
-        commline::flag({"help"}, ""),
+        commline::flag({"hello"}, ""),
         commline::flag({"version"}, "")
     );
-    parse(list, "--help", "--", "--version", "-world");
+    parse(list, "--hello", "--", "--version", "-world");
 
     ASSERT_TRUE(list.get<0>());
     ASSERT_FALSE(list.get<1>());
@@ -179,7 +179,7 @@ TEST_F(ParameterListTest, ValueOptionShort) {
 }
 
 TEST_F(ParameterListTest, UnknownOption) {
-    auto list = make_list(commline::flag({"help", "h"}, ""));
+    auto list = make_list(commline::flag({"hello", "h"}, ""));
 
     try {
         parse(list, "--version");
@@ -190,7 +190,7 @@ TEST_F(ParameterListTest, UnknownOption) {
     }
 
     try {
-        parse(list, "-help");
+        parse(list, "-hello");
         FAIL() << "Parsed as a sequnece of short options.";
     }
     catch (const commline::cli_error& ex) {

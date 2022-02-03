@@ -46,7 +46,11 @@ namespace commline {
             error_handler = handler;
         }
 
-        auto run(int argc, const char** argv) -> int {
+        auto run(
+            int argc,
+            const char** argv,
+            std::ostream& out = std::cout
+        ) -> int {
             const auto args = commline::collect(argc, argv);
             auto first = args.begin();
             auto last = args.end();
@@ -61,7 +65,8 @@ namespace commline {
                         this->description,
                         argv0
                     },
-                    commline::argv(first, last)
+                    commline::argv(first, last),
+                    out
                 );
             }
             catch (const std::system_error& ex) {

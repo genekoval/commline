@@ -16,17 +16,12 @@ namespace commline {
 
     auto no_argument::set() -> void { value = true; }
 
-    takes_argument::takes_argument(std::string_view argument_name) :
-        argument_name(argument_name)
-    {}
-
     single_argument::single_argument(
         std::initializer_list<std::string> aliases,
         std::string_view description,
         std::string_view argument_name
     ) :
-        option_base(aliases, description),
-        takes_argument(argument_name)
+        takes_argument(aliases, description, argument_name)
     {}
 
     auto single_argument::set(std::string_view argument) -> void {
@@ -38,8 +33,7 @@ namespace commline {
         std::string_view description,
         std::string_view argument_name
     ) :
-        option_base(aliases, description),
-        takes_argument(argument_name)
+        takes_argument(aliases, description, argument_name)
     {}
 
     auto multiple_arguments::set(std::string_view argument) -> void {

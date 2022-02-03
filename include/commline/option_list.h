@@ -30,11 +30,14 @@ namespace commline {
         using type =
             std::tuple_element<N, tuple_type>::type::type;
 
+        static constexpr auto size = std::tuple_size_v<tuple_type>;
+
         [[noreturn]]
         static auto missing_value(std::string_view alias) -> void {
             throw cli_error("missing value for: " + std::string(alias));
         }
 
+        flag help_flag;
         tuple_type opts;
         std::unordered_map<std::string_view, variant_type> option_map;
 
@@ -48,11 +51,7 @@ namespace commline {
 
         template <std::size_t ...I>
         auto generate_map(std::index_sequence<I...>) -> void {
-            ((
-                add(variant_type(
-                    &(std::get<I>(opts).base)
-                ))
-            ), ...);
+            (add(&(std::get<I>(opts).base)), ...);
         }
 
         template <std::size_t ...I>
@@ -134,8 +133,17 @@ namespace commline {
                 }, find(alias));
             }
         }
+
+        template <std::size_t ...I>
+        auto print(std::ostream& out, std::index_sequence<I...>) const -> void {
+            (std::get<I>(opts).base.print_help(out), ...);
+        }
     public:
-        option_list(tuple_type&& opts) : opts(std::move(opts)) {
+        option_list(tuple_type&& opts) :
+            help_flag({"help", "?"}, "Print information about a command"),
+            opts(std::move(opts))
+        {
+            add(&(help_flag.base));
             generate_map(std::index_sequence_for<Options...>());
         }
 
@@ -146,6 +154,10 @@ namespace commline {
         template <std::size_t N>
         auto get() const -> type<N> {
             return std::get<N>(opts).get();
+        }
+
+        auto help() -> bool {
+            return help_flag.get();
         }
 
         auto extract() const -> std::tuple<typename Options::type...> {
@@ -176,6 +188,13 @@ namespace commline {
                     last
                 );
                 else handle_arg(current);
+            }
+        }
+
+        auto print_help(std::ostream& out) const -> void {
+            if constexpr (size > 0) {
+                print::header(out, "Options");
+                print(out, std::index_sequence_for<Options...>());
             }
         }
     };

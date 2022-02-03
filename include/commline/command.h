@@ -7,11 +7,27 @@
 #include <array>
 #include <functional>
 #include <memory>
-#include <unordered_map>
+#include <map>
 
 namespace commline {
     class command_node : public describable {
-        std::unordered_map<std::string, std::unique_ptr<command_node>> commands;
+        std::map<std::string, std::unique_ptr<command_node>> commands;
+    protected:
+        auto print_help(std::ostream& out) const -> void {
+            constexpr auto spacing = 15;
+
+            if (commands.empty()) return;
+
+            print::header(out, "Commands");
+
+            for (const auto& [key, value] : commands) {
+                print::indent(out);
+                out << key;
+
+                print::spaces(out, spacing - key.size());
+                out << value->description << "\n";
+            }
+        }
     public:
         const std::string name;
 
@@ -20,7 +36,11 @@ namespace commline {
             name(name)
         {}
 
-        virtual auto execute(const app& context, const argv& args) -> void = 0;
+        virtual auto execute(
+            const app& context,
+            const argv& args,
+            std::ostream& out
+        ) -> void = 0;
 
         template <typename InputIt>
         auto find(InputIt& first, InputIt last) -> command_node* {
@@ -49,6 +69,14 @@ namespace commline {
     class command_impl : public command_node {
         Callable fn;
         option_list<Options...> opts;
+
+        auto print_help(std::ostream& out) -> void {
+            out << name << ": " << description << "\n";
+
+            opts.print_help(out);
+
+            command_node::print_help(out);
+        }
     public:
         command_impl(
             std::string_view name,
@@ -69,7 +97,11 @@ namespace commline {
             opts(std::move(opts))
         {}
 
-        auto execute(const app& context, const argv& args) -> void override {
+        auto execute(
+            const app& context,
+            const argv& args,
+            std::ostream& out
+        ) -> void override {
             auto arguments = argv();
 
             opts.parse(
@@ -79,6 +111,11 @@ namespace commline {
                     arguments.push_back(arg);
                 }
             );
+
+            if (opts.help()) {
+                print_help(out);
+                return;
+            }
 
             std::apply(fn, std::tuple_cat(
                 std::make_tuple(
