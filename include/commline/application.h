@@ -10,34 +10,26 @@ namespace commline {
 
     auto print_error(const std::exception& ex) -> void;
 
-    template <typename Callable, typename ...Options>
-    class application : public command_impl<Callable, Options...> {
+    template <typename Callable, typename Options, typename Arguments>
+    class app_impl : public command_impl<Callable, Options, Arguments> {
         error_handler_t error_handler = &print_error;
     public:
         const std::string version;
 
-        application(
+        app_impl(
             std::string_view name,
             std::string_view version,
             std::string_view description,
-            Callable fn
+            Callable&& fn,
+            Options&& options,
+            Arguments&& arguments
         ) :
-            command_impl<Callable, Options...>(name, description, fn),
-            version(version)
-        {}
-
-        application(
-            std::string_view name,
-            std::string_view version,
-            std::string_view description,
-            std::tuple<Options...>&& opts,
-            Callable fn
-        ) :
-            command_impl<Callable, Options...>(
+            command_impl<Callable, Options, Arguments>(
                 name,
                 description,
-                std::move(opts),
-                fn
+                std::move(fn),
+                std::move(options),
+                std::move(arguments)
             ),
             version(version)
         {}
@@ -81,4 +73,23 @@ namespace commline {
             return EXIT_SUCCESS;
         };
     };
+
+    template <typename Callable, typename Options, typename Arguments>
+    auto application(
+        std::string_view name,
+        std::string_view version,
+        std::string_view description,
+        Options&& options,
+        Arguments&& arguments,
+        Callable&& fn
+    ) -> app_impl<Callable, Options, Arguments> {
+        return app_impl<Callable, Options, Arguments>(
+            name,
+            version,
+            description,
+            std::move(fn),
+            std::move(options),
+            std::move(arguments)
+        );
+    }
 }

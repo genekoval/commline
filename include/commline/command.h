@@ -1,5 +1,6 @@
 #pragma once
 
+#include <commline/arguments.h>
 #include <commline/argv.h>
 #include <commline/context.h>
 #include <commline/option_list.h>
@@ -65,13 +66,27 @@ namespace commline {
         }
     };
 
-    template <typename Callable, typename ...Options>
+    template <typename Callable, typename Options, typename Arguments>
     class command_impl : public command_node {
         Callable fn;
-        option_list<Options...> opts;
+        Options options;
+        Arguments arguments;
 
-        auto print_help(std::ostream& out) -> void {
-            out << name << ": " << description << "\n";
+        template <typename Opts, typename Args>
+        auto print_help(
+            std::ostream& out,
+            const Opts& opts,
+            const Args& args
+        ) const -> void {
+            out << description << "\n\n" << "Usage: " << name;
+
+            if (opts.size() > 0) {
+                out << " [options]";
+                if (args.size() > 0) out << " [--]";
+            }
+
+            args.print_help(out);
+            out << "\n";
 
             opts.print_help(out);
 
@@ -81,77 +96,64 @@ namespace commline {
         command_impl(
             std::string_view name,
             std::string_view description,
-            Callable fn
-        ) :
-            command_impl(name, description, options(), fn)
-        {}
-
-        command_impl(
-            std::string_view name,
-            std::string_view description,
-            std::tuple<Options...>&& opts,
-            Callable fn
+            Callable&& fn,
+            Options&& options,
+            Arguments&& arguments
         ) :
             command_node(name, description),
-            fn(fn),
-            opts(std::move(opts))
+            fn(std::move(fn)),
+            options(std::move(options)),
+            arguments(std::move(arguments))
         {}
 
         auto execute(
             const app& context,
-            const argv& args,
+            const argv& argv,
             std::ostream& out
         ) -> void override {
-            auto arguments = argv();
+            auto positional = std::vector<std::string_view>();
+            auto opts = option_list(std::move(options));
+            auto args = positional_arguments(std::move(arguments));
 
             opts.parse(
-                args.begin(),
-                args.end(),
-                [&arguments](std::string_view arg) {
-                    arguments.push_back(arg);
+                argv.begin(),
+                argv.end(),
+                [&positional](std::string_view arg) {
+                    positional.push_back(arg);
                 }
             );
 
             if (opts.help()) {
-                print_help(out);
+                print_help(out, opts, args);
                 return;
             }
 
             std::apply(fn, std::tuple_cat(
-                std::make_tuple(
-                    context,
-                    arguments
-                ),
-                opts.extract()
+                std::make_tuple(context),
+                opts.extract(),
+                args.parse(positional)
             ));
         }
     };
 
-    template <typename Callable>
+    template <typename Callable, typename Options, typename Arguments>
     auto command(
         std::string_view name,
         std::string_view description,
-        Callable fn
+        Options&& options,
+        Arguments&& arguments,
+        Callable&& fn
     ) -> std::unique_ptr<command_node> {
-        return std::make_unique<command_impl<Callable>>(
+        return std::make_unique<command_impl<
+            Callable,
+            Options,
+            Arguments
+        >>(
             name,
             description,
-            fn
-        );
-    }
-
-    template <typename Callable, typename ...Options>
-    auto command(
-        std::string_view name,
-        std::string_view description,
-        std::tuple<Options...>&& opts,
-        Callable fn
-    ) -> std::unique_ptr<command_node> {
-        return std::make_unique<command_impl<Callable, Options...>>(
-            name,
-            description,
-            std::move(opts),
-            fn
+            std::move(fn),
+            std::move(options),
+            std::move(arguments)
         );
     }
 }

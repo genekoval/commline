@@ -30,10 +30,9 @@ namespace commline {
         using type =
             std::tuple_element<N, tuple_type>::type::type;
 
-        static constexpr auto size = std::tuple_size_v<tuple_type>;
+        static constexpr auto size_v = std::tuple_size_v<tuple_type>;
 
-        [[noreturn]]
-        static auto missing_value(std::string_view alias) -> void {
+        [[noreturn]] static auto missing_value(std::string_view alias) -> void {
             throw cli_error("missing value for: " + std::string(alias));
         }
 
@@ -147,10 +146,6 @@ namespace commline {
             generate_map(std::index_sequence_for<Options...>());
         }
 
-        option_list(Options&&... opts) :
-            option_list(std::make_tuple(std::move(opts)...))
-        {}
-
         template <std::size_t N>
         auto get() const -> type<N> {
             return std::get<N>(opts).get();
@@ -192,10 +187,14 @@ namespace commline {
         }
 
         auto print_help(std::ostream& out) const -> void {
-            if constexpr (size > 0) {
+            if constexpr (size_v > 0) {
                 print::header(out, "Options");
                 print(out, std::index_sequence_for<Options...>());
             }
+        }
+
+        constexpr auto size() const -> std::size_t {
+            return size_v;
         }
     };
 

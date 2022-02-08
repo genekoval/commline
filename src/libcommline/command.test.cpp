@@ -3,6 +3,14 @@
 #include <commline/argv.h>
 #include <commline/command.h>
 
+using commline::required;
+using commline::arguments;
+using commline::command;
+using commline::flag;
+using commline::option;
+using commline::options;
+using commline::variadic;
+
 class CommandTest : public testing::Test {
 protected:
     static constexpr auto description = "a test command"sv;
@@ -13,52 +21,37 @@ protected:
         "/app"
     };
 
-    std::vector<std::string> arguments;
     std::ostringstream out;
-
-    auto make_argv(std::initializer_list<std::string> il) -> commline::argv {
-        arguments = std::vector<std::string>(il);
-
-        auto argv = commline::argv();
-        for (const auto& arg : arguments) argv.push_back(arg);
-
-        return argv;
-    }
 };
 
 TEST_F(CommandTest, Execution) {
-    commline::command(
+    command(
         "name",
         description,
-        commline::options(commline::flag({"foo"}, "")),
-        [](
-            const commline::app& app,
-            const commline::argv& argv,
-            bool foo
-        ) {
+        options(flag({"foo"}, "")),
+        arguments(required<std::string_view>("greeting")),
+        [](const commline::app& app, bool foo, std::string_view greeting) {
             ASSERT_EQ(app_info.name, app.name);
             ASSERT_EQ(app_info.version, app.version);
             ASSERT_EQ(app_info.description, app.description);
             ASSERT_EQ(app_info.argv0, app.argv0);
 
             ASSERT_TRUE(foo);
-            ASSERT_EQ(1, argv.size());
-            ASSERT_EQ("hello"sv, argv[0]);
+            ASSERT_EQ("hello"s, greeting);
         }
-    )->execute(app_info, make_argv({"--foo", "hello"}), out);
+    )->execute(app_info, {"--foo", "hello"}, out);
 }
 
 TEST_F(CommandTest, Subcommand) {
     constexpr auto argument = "argument";
     constexpr auto cmd = "cmd";
 
-    auto root = commline::command(
+    auto root = command(
         "root",
         description,
-        [](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
+        options(),
+        arguments(),
+        [](const commline::app& app) {
             FAIL() << "Command should not run.";
         }
     );
@@ -66,76 +59,80 @@ TEST_F(CommandTest, Subcommand) {
     auto child = commline::command(
         cmd,
         description,
-        [argument](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
-            ASSERT_EQ(1, argv.size());
-            ASSERT_EQ(argument, argv[0]);
+        options(),
+        arguments(required<std::string_view>("foo")),
+        [argument](const commline::app& app, std::string_view foo) {
+            ASSERT_EQ(argument, foo);
         }
     );
 
     root->subcommand(std::move(child));
 
-    auto argv = make_argv({cmd, argument});
-
+    const auto argv = std::vector<std::string_view> {cmd, argument};
     auto it = argv.begin();
     auto end = argv.end();
 
     auto command = root->find(it, end);
 
-    command->execute(app_info, commline::argv(it, end), out);
+    command->execute(app_info, std::vector<std::string_view>(it, end), out);
 }
 
 TEST_F(CommandTest, Help) {
     commline::command(
         "foo",
         description,
-        [](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
+        options(),
+        arguments(),
+        [](const commline::app& app) {
             FAIL() << "Command should not execute";
         }
-    )->execute(app_info, make_argv({"--help"}), out);
+    )->execute(app_info, {"--help"}, out);
 
     const auto result = out.str();
 
-    ASSERT_EQ("foo: a test command\n"sv, result);
+    ASSERT_EQ(
+R"(a test command
+
+Usage: foo
+)",
+    result
+    );
 }
 
 TEST_F(CommandTest, HelpOptions) {
-    commline::command(
+    command(
         "foo",
         description,
-        commline::options(
-            commline::flag({"bar"}, "A flag named bar"),
-            commline::option<std::string_view>(
+        options(
+            flag({"bar"}, "A flag named bar"),
+            option<std::string_view>(
                 {"h", "hello"},
                 "A friendly greeting",
                 "world"
             ),
-            commline::option<std::string_view>(
+            option<std::string_view>(
                 {"l", "really-long-option-name"},
                 "A description on the next line",
                 "value"
             )
         ),
+        arguments(),
         [](
             const commline::app& app,
-            const commline::argv& argv,
             bool bar,
             std::string_view hello,
             std::string_view long_opt
         ) {
             FAIL() << "Command should not execute";
         }
-    )->execute(app_info, make_argv({"--help"}), out);
+    )->execute(app_info, {"--help"}, out);
 
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(foo: a test command
+R"(a test command
+
+Usage: foo [options]
 
 Options:
     --bar                         A flag named bar
@@ -147,35 +144,57 @@ Options:
     );
 }
 
-TEST_F(CommandTest, HelpCommands) {
-    auto root = commline::command(
+TEST_F(CommandTest, HelpArguments) {
+    command(
         "foo",
         description,
+        options(),
+        arguments(required<std::string_view>("bar"), variadic<int>("baz")),
         [](
             const commline::app& app,
-            const commline::argv& argv
+            std::string_view bar,
+            const std::vector<int>& baz
         ) {
             FAIL() << "Command should not execute";
         }
-    );
-
-    root->subcommand(commline::command(
-        "bar",
-        "A second test command",
-        [](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
-            FAIL() << "Command should not execute";
-        }
-    ));
-
-    root->execute(app_info, make_argv({"--help"}), out);
+    )->execute(app_info, {"--help"}, out);
 
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(foo: a test command
+R"(a test command
+
+Usage: foo BAR BAZ...
+)",
+        result
+    );
+}
+
+TEST_F(CommandTest, HelpCommands) {
+    auto root = command(
+        "foo",
+        description,
+        options(),
+        arguments(),
+        [](const commline::app& app) { FAIL() << "Command should not execute"; }
+    );
+
+    root->subcommand(command(
+        "bar",
+        "A second test command",
+        options(),
+        arguments(),
+        [](const commline::app& app) { FAIL() << "Command should not execute"; }
+    ));
+
+    root->execute(app_info, {"--help"}, out);
+
+    const auto result = out.str();
+
+    ASSERT_EQ(
+R"(a test command
+
+Usage: foo
 
 Commands:
     bar            A second test command
@@ -185,10 +204,10 @@ Commands:
 }
 
 TEST_F(CommandTest, HelpMixed) {
-    auto root = commline::command(
+    auto root = command(
         "foo",
         description,
-        commline::options(
+        options(
             commline::flag({"bar"}, "A flag named bar"),
             commline::option<std::string_view>(
                 {"h", "hello"},
@@ -196,33 +215,37 @@ TEST_F(CommandTest, HelpMixed) {
                 "world"
             )
         ),
+        arguments(
+            variadic<std::string_view>("baz"),
+            required<int>("number")
+        ),
         [](
             const commline::app& app,
-            const commline::argv& argv,
             bool bar,
-            std::string_view hello
+            std::string_view hello,
+            const std::vector<std::string_view>& baz,
+            int number
         ) {
             FAIL() << "Command should not execute";
         }
     );
 
-    root->subcommand(commline::command(
+    root->subcommand(command(
         "bar",
         "A second test command",
-        [](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
-            FAIL() << "Command should not execute";
-        }
+        options(),
+        arguments(),
+        [](const commline::app& app) { FAIL() << "Command should not execute"; }
     ));
 
-    root->execute(app_info, make_argv({"--help"}), out);
+    root->execute(app_info, {"--help"}, out);
 
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(foo: a test command
+R"(a test command
+
+Usage: foo [options] [--] BAZ... NUMBER
 
 Options:
     --bar                         A flag named bar

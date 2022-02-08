@@ -14,11 +14,10 @@ protected:
     };
 
     template <typename ...Options>
-    auto make_list(
-        Options&&... options
-    ) -> commline::option_list<Options...> {
+    auto options(Options&&... opts) -> commline::option_list<Options...> {
         return commline::option_list<Options...>(
-            std::forward<Options>(options)...);
+            commline::options(std::forward<Options>(opts)...)
+        );
     }
 
     template <typename OptionList, typename ...Args>
@@ -30,7 +29,7 @@ protected:
 };
 
 TEST_F(ParameterListTest, NoOptions) {
-    auto list = make_list(commline::flag({"hello"}, ""));
+    auto list = options(commline::flag({"hello"}, ""));
 
     parse(list);
 
@@ -39,7 +38,7 @@ TEST_F(ParameterListTest, NoOptions) {
 }
 
 TEST_F(ParameterListTest, ArgumentsOnly) {
-    auto list = make_list(commline::flag({"hello", "h"}, ""));
+    auto list = options(commline::flag({"hello", "h"}, ""));
 
     parse(list, "hello", "world", "h");
 
@@ -51,7 +50,7 @@ TEST_F(ParameterListTest, ArgumentsOnly) {
 }
 
 TEST_F(ParameterListTest, LongOption) {
-    auto list = make_list(commline::flag({"hello"}, ""));
+    auto list = options(commline::flag({"hello"}, ""));
 
     ASSERT_FALSE(list.get<0>());
 
@@ -61,7 +60,7 @@ TEST_F(ParameterListTest, LongOption) {
 }
 
 TEST_F(ParameterListTest, ShortOption) {
-    auto list = make_list(commline::flag({"h"}, ""));
+    auto list = options(commline::flag({"h"}, ""));
 
     ASSERT_FALSE(list.get<0>());
     parse(list, "-h");
@@ -69,7 +68,7 @@ TEST_F(ParameterListTest, ShortOption) {
 }
 
 TEST_F(ParameterListTest, ShortFlagSequence) {
-    auto list = make_list(
+    auto list = options(
         commline::flag({"a"}, ""),
         commline::flag({"b"}, ""),
         commline::flag({"c"}, ""),
@@ -85,7 +84,7 @@ TEST_F(ParameterListTest, ShortFlagSequence) {
 }
 
 TEST_F(ParameterListTest, MixedParams) {
-    auto list = make_list(
+    auto list = options(
         commline::flag({"hello", "h"}, ""),
         commline::flag({"version", "v"}, ""),
         commline::flag({"a"}, ""),
@@ -112,7 +111,7 @@ TEST_F(ParameterListTest, MixedParams) {
 }
 
 TEST_F(ParameterListTest, EndOfOptions) {
-    auto list = make_list(
+    auto list = options(
         commline::flag({"hello"}, ""),
         commline::flag({"version"}, "")
     );
@@ -127,7 +126,7 @@ TEST_F(ParameterListTest, EndOfOptions) {
 }
 
 TEST_F(ParameterListTest, ValueOptionLong) {
-    auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
+    auto list = options(commline::option<std::string_view>({"name"}, "", ""));
 
     parse(list, "--name", "commline", "hello");
 
@@ -137,7 +136,7 @@ TEST_F(ParameterListTest, ValueOptionLong) {
 }
 
 TEST_F(ParameterListTest, LongOptionEquals) {
-    auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
+    auto list = options(commline::option<std::string_view>({"name"}, "", ""));
 
     parse(list, "--name=commline");
 
@@ -145,7 +144,7 @@ TEST_F(ParameterListTest, LongOptionEquals) {
 }
 
 TEST_F(ParameterListTest, LongOptionEqualsMissingValue) {
-    auto list = make_list(commline::option<std::string_view>({"name"}, "", ""));
+    auto list = options(commline::option<std::string_view>({"name"}, "", ""));
 
     try {
         parse(list, "--name=");
@@ -157,7 +156,7 @@ TEST_F(ParameterListTest, LongOptionEqualsMissingValue) {
 }
 
 TEST_F(ParameterListTest, FlagEquals) {
-    auto list = make_list(commline::flag({"version"}, ""));
+    auto list = options(commline::flag({"version"}, ""));
 
     try {
         parse(list, "--version=foo");
@@ -169,7 +168,7 @@ TEST_F(ParameterListTest, FlagEquals) {
 }
 
 TEST_F(ParameterListTest, ValueOptionShort) {
-    auto list = make_list(commline::option<std::string_view>({"n"}, "", ""));
+    auto list = options(commline::option<std::string_view>({"n"}, "", ""));
 
     parse(list, "-n", "commline", "hello");
 
@@ -179,7 +178,7 @@ TEST_F(ParameterListTest, ValueOptionShort) {
 }
 
 TEST_F(ParameterListTest, UnknownOption) {
-    auto list = make_list(commline::flag({"hello", "h"}, ""));
+    auto list = options(commline::flag({"hello", "h"}, ""));
 
     try {
         parse(list, "--version");
@@ -199,7 +198,7 @@ TEST_F(ParameterListTest, UnknownOption) {
 }
 
 TEST_F(ParameterListTest, MissingValue) {
-    auto list = make_list(
+    auto list = options(
         commline::option<std::string_view>({"name", "n"}, "", ""),
         commline::flag({"v"}, "")
     );
@@ -230,7 +229,7 @@ TEST_F(ParameterListTest, MissingValue) {
 }
 
 TEST_F(ParameterListTest, SequenceValue) {
-    auto list = make_list(
+    auto list = options(
         commline::flag({"create", "c"}, ""),
         commline::option<std::string_view>({"file", "f"}, "", ""),
         commline::flag({"verbose", "v"}, "")
@@ -246,7 +245,7 @@ TEST_F(ParameterListTest, SequenceValue) {
 }
 
 TEST_F(ParameterListTest, EmptyList) {
-    auto list = make_list(
+    auto list = options(
         commline::list<std::string_view>({"include"}, "", "")
     );
 
@@ -256,7 +255,7 @@ TEST_F(ParameterListTest, EmptyList) {
 }
 
 TEST_F(ParameterListTest, ListOne) {
-    auto list = make_list(
+    auto list = options(
         commline::list<std::string_view>({"include"}, "", "")
     );
 
@@ -268,7 +267,7 @@ TEST_F(ParameterListTest, ListOne) {
 }
 
 TEST_F(ParameterListTest, ListMany) {
-    auto list = make_list(
+    auto list = options(
         commline::list<std::string_view>({"include"}, "", "")
     );
 
@@ -281,7 +280,7 @@ TEST_F(ParameterListTest, ListMany) {
 }
 
 TEST_F(ParameterListTest, ListNoValue) {
-    auto list = make_list(
+    auto list = options(
         commline::list<std::string_view>({"include"}, "", "")
     );
 

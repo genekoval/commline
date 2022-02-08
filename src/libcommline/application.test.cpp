@@ -4,6 +4,13 @@
 
 #include <string_view>
 
+using commline::application;
+using commline::arguments;
+using commline::command;
+using commline::flag;
+using commline::option;
+using commline::options;
+
 class ApplicationTest : public testing::Test {
 protected:
     static constexpr auto name = "myapp"sv;
@@ -23,16 +30,13 @@ TEST_F(ApplicationTest, Create) {
     const int argc = 1;
     const char* argv[argc] = { "./app" };
 
-    ASSERT_EQ(0, commline::application(
+    ASSERT_EQ(0, application(
         name,
         version,
         description,
-        [this](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
-            assert_app_info(app);
-        }
+        options(),
+        arguments(),
+        [this](const commline::app& app) { assert_app_info(app); }
     ).run(argc, argv));
 }
 
@@ -42,38 +46,31 @@ TEST_F(ApplicationTest, MulipleCommands) {
         "./app", "start", "--fork", "--threads", "4"
     };
 
-    auto application = commline::application(
+    auto app = application(
         name,
         version,
         description,
-        [](
-            const commline::app& app,
-            const commline::argv& argv
-        ) {
-            FAIL() << "Command should not run.";
-        }
+        options(),
+        arguments(),
+        [](const commline::app& app) { FAIL() << "Command should not run."; }
     );
 
-    application.subcommand(commline::command(
+    app.subcommand(command(
         "start",
         "Start the server.",
-        commline::options(
-            commline::flag(
+        options(
+            flag(
                 {"fork"},
                 "Fork the process."
             ),
-            commline::option<int>(
+            option<int>(
                 {"threads"},
                 "Number of threads.",
                 "count"
             )
         ),
-        [this](
-            const commline::app& app,
-            const commline::argv& argv,
-            bool fork,
-            int threads
-        ) {
+        arguments(),
+        [this](const commline::app& app, bool fork, int threads) {
             assert_app_info(app);
 
             ASSERT_TRUE(fork);
@@ -81,5 +78,5 @@ TEST_F(ApplicationTest, MulipleCommands) {
         }
     ));
 
-    ASSERT_EQ(0, application.run(argc, argv));
+    ASSERT_EQ(0, app.run(argc, argv));
 }
