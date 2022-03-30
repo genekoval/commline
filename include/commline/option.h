@@ -1,7 +1,7 @@
 #pragma once
 
 #include <commline/argv.h>
-#include <commline/parse.h>
+#include <commline/parser.h>
 #include <commline/print.h>
 
 #include <optional>
@@ -173,7 +173,7 @@ namespace commline {
 
         auto get() const -> T {
             auto value = base.get();
-            if (value) return parse<T>(*value);
+            if (value) return parser<T>::parse(*value);
             return default_value;
         }
     };
@@ -197,7 +197,7 @@ namespace commline {
             auto result = type();
 
             for (const auto item : value) {
-                result.push_back(parse<T>(item));
+                result.push_back(parser<T>::parse(item));
             }
 
             return result;

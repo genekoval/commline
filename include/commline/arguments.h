@@ -1,7 +1,7 @@
 #pragma once
 
 #include <commline/error.h>
-#include <commline/parse.h>
+#include <commline/parser.h>
 
 #include <array>
 #include <optional>
@@ -51,7 +51,7 @@ namespace commline {
         required(std::string_view name) : base(name) {}
 
         auto value() const -> type {
-            return parse<type>(base.value);
+            return parser<type>::parse(base.value);
         }
     };
 
@@ -64,7 +64,7 @@ namespace commline {
         optional(std::string_view name) : base(name) {}
 
         auto value() const -> type {
-            if (base.value) return parse<T>(base.value.value());
+            if (base.value) return parser<T>::parse(base.value.value());
             return {};
         }
     };
@@ -81,7 +81,7 @@ namespace commline {
             auto result = type();
 
             for (const auto val : base.values) {
-                result.push_back(parse<T>(val));
+                result.push_back(parser<T>::parse(val));
             }
 
             return result;
