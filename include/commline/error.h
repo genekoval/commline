@@ -8,7 +8,7 @@ namespace commline {
         template <typename ...Args>
         cli_error(std::string_view format_string, Args&&... args) :
             std::runtime_error(fmt::format(
-                format_string,
+                fmt::runtime(format_string),
                 std::forward<Args>(args)...
             ))
         {}
