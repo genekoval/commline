@@ -2,6 +2,8 @@
 
 #include <commline/arguments.h>
 
+using namespace std::literals;
+
 using commline::cli_error;
 using commline::optional;
 using commline::required;
@@ -20,8 +22,9 @@ protected:
 };
 
 TEST_F(ArgumentTest, RequiredArgument) {
+    constexpr auto args = std::array {"world"sv};
     auto parser = arguments(required<std::string_view>("hello"));
-    const auto [result] = parser.parse({"world"});
+    const auto [result] = parser.parse(args);
 
     ASSERT_EQ("world", result);
 }
@@ -42,8 +45,9 @@ TEST_F(ArgumentTest, RequiredArgumentMissing) {
 }
 
 TEST_F(ArgumentTest, OptionalArgument) {
+    constexpr auto args = std::array {"world"sv};
     auto parser = arguments(optional<std::string_view>("hello"));
-    const auto [result] = parser.parse({"world"});
+    const auto [result] = parser.parse(args);
 
     ASSERT_TRUE(result.has_value());
     ASSERT_EQ("world", *result);
@@ -64,16 +68,18 @@ TEST_F(ArgumentTest, VariadicEmpty) {
 }
 
 TEST_F(ArgumentTest, VariadicOne) {
+    constexpr auto args = std::array {"bar"sv};
     auto parser = arguments(variadic<std::string_view>("foo"));
-    const auto [result] = parser.parse({"bar"});
+    const auto [result] = parser.parse(args);
 
     ASSERT_EQ(1, result.size());
     ASSERT_EQ("bar", result.front());
 }
 
 TEST_F(ArgumentTest, VariadicMultiple) {
+    constexpr auto args = std::array {"bar"sv, "baz"sv};
     auto parser = arguments(variadic<std::string_view>("foo"));
-    const auto [result] = parser.parse({"bar", "baz"});
+    const auto [result] = parser.parse(args);
 
     ASSERT_EQ(2, result.size());
     ASSERT_EQ("bar", result[0]);
@@ -81,11 +87,12 @@ TEST_F(ArgumentTest, VariadicMultiple) {
 }
 
 TEST_F(ArgumentTest, VariadicLeading) {
+    constexpr auto args = std::array {"2"sv, "4"sv, "8"sv, "foo"sv};
     auto parser = arguments(
         variadic<int>("numbers"),
         required<std::string_view>("word")
     );
-    const auto [numbers, word] = parser.parse({"2", "4", "8", "foo"});
+    const auto [numbers, word] = parser.parse(args);
 
     ASSERT_EQ(3, numbers.size());
     ASSERT_EQ(2, numbers[0]);
@@ -95,14 +102,20 @@ TEST_F(ArgumentTest, VariadicLeading) {
 }
 
 TEST_F(ArgumentTest, VariadicCenter) {
+    constexpr auto args = std::array {
+        "foo"sv,
+        "one"sv,
+        "two"sv,
+        "three"sv,
+        "bar"sv
+    };
+
     auto parser = arguments(
         required<std::string_view>("head"),
         variadic<std::string_view>("numbers"),
         required<std::string_view>("tail")
     );
-    const auto [head, numbers, tail] = parser.parse({
-        "foo", "one", "two", "three", "bar"
-    });
+    const auto [head, numbers, tail] = parser.parse(args);
 
     ASSERT_EQ("foo", head);
     ASSERT_EQ(3, numbers.size());
@@ -113,11 +126,18 @@ TEST_F(ArgumentTest, VariadicCenter) {
 }
 
 TEST_F(ArgumentTest, VariadicTrailing) {
+    constexpr auto args = std::array {
+        "foo"sv,
+        "5"sv,
+        "10"sv,
+        "15"sv
+    };
+
     auto parser = arguments(
         required<std::string_view>("word"),
         variadic<int>("numbers")
     );
-    const auto [word, numbers] = parser.parse({"foo", "5", "10", "15"});
+    const auto [word, numbers] = parser.parse(args);
 
     ASSERT_EQ("foo", word);
     ASSERT_EQ(3, numbers.size());

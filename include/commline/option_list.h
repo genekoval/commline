@@ -1,5 +1,6 @@
 #pragma once
 
+#include <commline/argv.h>
 #include <commline/error.h>
 #include <commline/option.h>
 
@@ -32,7 +33,8 @@ namespace commline {
 
         static constexpr auto size_v = std::tuple_size_v<tuple_type>;
 
-        [[noreturn]] static auto missing_value(std::string_view alias) -> void {
+        [[noreturn]]
+        static auto missing_value(std::string_view alias) -> void {
             throw cli_error("missing value for: " + std::string(alias));
         }
 
@@ -69,11 +71,10 @@ namespace commline {
             }
         }
 
-        template <typename InputIt>
         auto handle_long_parameter(
             std::string_view token,
-            InputIt& first,
-            InputIt last
+            iterator& first,
+            iterator last
         ) -> void {
             const auto equals_sign = token.find("=");
             const auto has_equals_sign = equals_sign != std::string_view::npos;
@@ -106,11 +107,10 @@ namespace commline {
             }, find(alias));
         }
 
-        template <typename InputIt>
         auto handle_short_parameter(
             std::string_view sequence,
-            InputIt& first,
-            InputIt last
+            iterator& first,
+            iterator last
         ) -> void {
             auto it = sequence.begin();
             const auto end = sequence.end();
@@ -159,8 +159,11 @@ namespace commline {
             return get_values(std::index_sequence_for<Options...>());
         }
 
-        template <typename InputIt, typename Callable>
-        auto parse(InputIt first, InputIt last, Callable handle_arg) -> void {
+        template <typename Callable>
+        auto parse(argv args, Callable handle_arg) -> void {
+            auto first = args.begin();
+            const auto last = args.end();
+
             while (first != last) {
                 constexpr auto l = std::string_view("--");
                 constexpr auto s = std::string_view("-");

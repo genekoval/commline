@@ -43,9 +43,10 @@ namespace commline {
             const char** argv,
             std::ostream& out = std::cout
         ) -> int {
-            const auto args = commline::collect(argc, argv);
+            const auto args = commline::argv(argv, argc);
+
             auto first = args.begin();
-            auto last = args.end();
+            const auto last = args.end();
 
             const auto argv0 = *(first++);
             auto cmd = this->find(first, last);

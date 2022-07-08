@@ -12,7 +12,7 @@
 
 namespace commline {
     class command_node : public describable {
-        std::map<std::string, std::unique_ptr<command_node>> commands;
+        std::map<std::string_view, std::unique_ptr<command_node>> commands;
     protected:
         auto print_help(std::ostream& out) const -> void {
             constexpr auto spacing = 15;
@@ -30,7 +30,7 @@ namespace commline {
             }
         }
     public:
-        const std::string name;
+        const std::string_view name;
 
         command_node(std::string_view name, std::string_view description) :
             describable(description),
@@ -39,14 +39,13 @@ namespace commline {
 
         virtual auto execute(
             const app& context,
-            const argv& args,
+            argv args,
             std::ostream& out
         ) -> void = 0;
 
-        template <typename InputIt>
-        auto find(InputIt& first, InputIt last) -> command_node* {
+        auto find(iterator& first, iterator last) -> command_node* {
             if (first != last) {
-                auto node = commands.find(std::string(*first));
+                auto node = commands.find(*first);
 
                 if (node != commands.end()) {
                     return node->second->find(++first, last);
@@ -108,7 +107,7 @@ namespace commline {
 
         auto execute(
             const app& context,
-            const argv& argv,
+            argv argv,
             std::ostream& out
         ) -> void override {
             auto positional = std::vector<std::string_view>();
@@ -116,8 +115,7 @@ namespace commline {
             auto args = positional_arguments(std::move(arguments));
 
             opts.parse(
-                argv.begin(),
-                argv.end(),
+                argv,
                 [&positional](std::string_view arg) {
                     positional.push_back(arg);
                 }

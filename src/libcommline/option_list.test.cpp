@@ -7,8 +7,8 @@
 
 class ParameterListTest : public testing::Test {
 protected:
-    std::vector<std::string> argv;
-    std::vector<std::string> arguments;
+    std::vector<const char*> argv;
+    std::vector<std::string_view> arguments;
     std::function<void(std::string_view)> add_arg = [this](auto arg) {
         arguments.emplace_back(arg);
     };
@@ -21,17 +21,20 @@ protected:
     }
 
     template <typename OptionList, typename ...Args>
-    auto parse(OptionList& list, Args&&... args) -> void {
+    auto parse(
+        OptionList& list,
+        std::initializer_list<const char*> args
+    ) -> void {
         arguments.clear();
-        argv = std::vector<std::string>({args...});
-        list.parse(argv.begin(), argv.end(), add_arg);
+        argv = args;
+        list.parse(argv, add_arg);
     }
 };
 
 TEST_F(ParameterListTest, NoOptions) {
     auto list = options(commline::flag({"hello"}, ""));
 
-    parse(list);
+    parse(list, {});
 
     ASSERT_FALSE(list.get<0>());
     ASSERT_TRUE(arguments.empty());
@@ -40,7 +43,7 @@ TEST_F(ParameterListTest, NoOptions) {
 TEST_F(ParameterListTest, ArgumentsOnly) {
     auto list = options(commline::flag({"hello", "h"}, ""));
 
-    parse(list, "hello", "world", "h");
+    parse(list, {"hello", "world", "h"});
 
     ASSERT_FALSE(list.get<0>());
     ASSERT_EQ(3, arguments.size());
@@ -54,7 +57,7 @@ TEST_F(ParameterListTest, LongOption) {
 
     ASSERT_FALSE(list.get<0>());
 
-    parse(list, "--hello");
+    parse(list, {"--hello"});
 
     ASSERT_TRUE(list.get<0>());
 }
@@ -63,7 +66,7 @@ TEST_F(ParameterListTest, ShortOption) {
     auto list = options(commline::flag({"h"}, ""));
 
     ASSERT_FALSE(list.get<0>());
-    parse(list, "-h");
+    parse(list, {"-h"});
     ASSERT_TRUE(list.get<0>());
 }
 
@@ -75,7 +78,7 @@ TEST_F(ParameterListTest, ShortFlagSequence) {
         commline::flag({"d"}, "")
     );
 
-    parse(list, "-abd");
+    parse(list, {"-abd"});
 
     ASSERT_TRUE(list.get<0>());
     ASSERT_TRUE(list.get<1>());
@@ -84,6 +87,9 @@ TEST_F(ParameterListTest, ShortFlagSequence) {
 }
 
 TEST_F(ParameterListTest, MixedParams) {
+    constexpr auto hello = "hello";
+    constexpr auto world = "world";
+
     auto list = options(
         commline::flag({"hello", "h"}, ""),
         commline::flag({"version", "v"}, ""),
@@ -92,10 +98,7 @@ TEST_F(ParameterListTest, MixedParams) {
         commline::flag({"c"}, "")
     );
 
-    const auto hello = "hello"s;
-    const auto world = "world"s;
-
-    parse(list, hello, "--hello", "-v", world, "-abc");
+    parse(list, {hello, "--hello", "-v", world, "-abc"});
 
     for (auto value : {
         list.get<0>(),
@@ -115,7 +118,7 @@ TEST_F(ParameterListTest, EndOfOptions) {
         commline::flag({"hello"}, ""),
         commline::flag({"version"}, "")
     );
-    parse(list, "--hello", "--", "--version", "-world");
+    parse(list, {"--hello", "--", "--version", "-world"});
 
     ASSERT_TRUE(list.get<0>());
     ASSERT_FALSE(list.get<1>());
@@ -128,7 +131,7 @@ TEST_F(ParameterListTest, EndOfOptions) {
 TEST_F(ParameterListTest, ValueOptionLong) {
     auto list = options(commline::option<std::string_view>({"name"}, "", ""));
 
-    parse(list, "--name", "commline", "hello");
+    parse(list, {"--name", "commline", "hello"});
 
     ASSERT_EQ("commline", list.get<0>());
     ASSERT_EQ(1, arguments.size());
@@ -138,7 +141,7 @@ TEST_F(ParameterListTest, ValueOptionLong) {
 TEST_F(ParameterListTest, LongOptionEquals) {
     auto list = options(commline::option<std::string_view>({"name"}, "", ""));
 
-    parse(list, "--name=commline");
+    parse(list, {"--name=commline"});
 
     ASSERT_EQ("commline", list.get<0>());
 }
@@ -147,7 +150,7 @@ TEST_F(ParameterListTest, LongOptionEqualsMissingValue) {
     auto list = options(commline::option<std::string_view>({"name"}, "", ""));
 
     try {
-        parse(list, "--name=");
+        parse(list, {"--name="});
         FAIL() << "option value missing";
     }
     catch (const commline::cli_error& ex) {
@@ -159,7 +162,7 @@ TEST_F(ParameterListTest, FlagEquals) {
     auto list = options(commline::flag({"version"}, ""));
 
     try {
-        parse(list, "--version=foo");
+        parse(list, {"--version=foo"});
         FAIL() << "flag given a value";
     }
     catch (const commline::cli_error& ex) {
@@ -170,7 +173,7 @@ TEST_F(ParameterListTest, FlagEquals) {
 TEST_F(ParameterListTest, ValueOptionShort) {
     auto list = options(commline::option<std::string_view>({"n"}, "", ""));
 
-    parse(list, "-n", "commline", "hello");
+    parse(list, {"-n", "commline", "hello"});
 
     ASSERT_EQ("commline", list.get<0>());
     ASSERT_EQ(1, arguments.size());
@@ -181,7 +184,7 @@ TEST_F(ParameterListTest, UnknownOption) {
     auto list = options(commline::flag({"hello", "h"}, ""));
 
     try {
-        parse(list, "--version");
+        parse(list, {"--version"});
         FAIL() << "Option 'version' does not exist.";
     }
     catch (const commline::cli_error& ex) {
@@ -189,7 +192,7 @@ TEST_F(ParameterListTest, UnknownOption) {
     }
 
     try {
-        parse(list, "-hello");
+        parse(list, {"-hello"});
         FAIL() << "Parsed as a sequnece of short options.";
     }
     catch (const commline::cli_error& ex) {
@@ -204,7 +207,7 @@ TEST_F(ParameterListTest, MissingValue) {
     );
 
     try {
-        parse(list, "--name");
+        parse(list, {"--name"});
         FAIL() << "No name was given.";
     }
     catch (const commline::cli_error& ex) {
@@ -212,7 +215,7 @@ TEST_F(ParameterListTest, MissingValue) {
     }
 
     try {
-        parse(list, "-n");
+        parse(list, {"-n"});
         FAIL() << "No name was given.";
     }
     catch (const commline::cli_error& ex) {
@@ -220,7 +223,7 @@ TEST_F(ParameterListTest, MissingValue) {
     }
 
     try {
-        parse(list, "-nv", "hello");
+        parse(list, {"-nv", "hello"});
         FAIL() << "No name was given.";
     }
     catch (const commline::cli_error& ex) {
@@ -229,15 +232,15 @@ TEST_F(ParameterListTest, MissingValue) {
 }
 
 TEST_F(ParameterListTest, SequenceValue) {
+    constexpr auto config = "/home/commline/Documents";
+
     auto list = options(
         commline::flag({"create", "c"}, ""),
         commline::option<std::string_view>({"file", "f"}, "", ""),
         commline::flag({"verbose", "v"}, "")
     );
 
-    const auto config = "/home/commline/Documents"s;
-
-    parse(list, "-cvf", config);
+    parse(list, {"-cvf", config});
 
     ASSERT_TRUE(list.get<0>());
     ASSERT_EQ(config, list.get<1>());
@@ -249,7 +252,7 @@ TEST_F(ParameterListTest, EmptyList) {
         commline::list<std::string_view>({"include"}, "", "")
     );
 
-    parse(list, "");
+    parse(list, {""});
 
     ASSERT_TRUE(list.get<0>().empty());
 }
@@ -259,7 +262,7 @@ TEST_F(ParameterListTest, ListOne) {
         commline::list<std::string_view>({"include"}, "", "")
     );
 
-    parse(list, "--include", "foo");
+    parse(list, {"--include", "foo"});
     const auto result = list.get<0>();
 
     ASSERT_EQ(1, result.size());
@@ -271,7 +274,7 @@ TEST_F(ParameterListTest, ListMany) {
         commline::list<std::string_view>({"include"}, "", "")
     );
 
-    parse(list, "--include=foo", "--include=bar");
+    parse(list, {"--include=foo", "--include=bar"});
     const auto result = list.get<0>();
 
     ASSERT_EQ(2, result.size());
@@ -285,7 +288,7 @@ TEST_F(ParameterListTest, ListNoValue) {
     );
 
     try {
-        parse(list, "--include");
+        parse(list, {"--include"});
         FAIL() << "No value provided";
     }
     catch (const commline::cli_error& ex) {

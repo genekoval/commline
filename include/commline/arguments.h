@@ -152,7 +152,7 @@ namespace commline {
             generate_bases(std::index_sequence_for<Arguments...>());
         }
 
-        auto parse(const std::vector<std::string_view>& args) -> result_t {
+        auto parse(std::span<const std::string_view> args) -> result_t {
             auto args_begin = args.begin();
             auto args_end = args.end();
 

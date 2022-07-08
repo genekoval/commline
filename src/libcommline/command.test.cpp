@@ -1,6 +1,5 @@
 #include "test.h"
 
-#include <commline/argv.h>
 #include <commline/command.h>
 
 using commline::required;
@@ -20,11 +19,14 @@ protected:
         "Unit tests.",
         "/app"
     };
+    static constexpr auto help = std::array {"--help"};
 
     std::ostringstream out;
 };
 
 TEST_F(CommandTest, Execution) {
+    constexpr auto args = std::array {"--foo", "hello"};
+
     command(
         "name",
         description,
@@ -39,12 +41,14 @@ TEST_F(CommandTest, Execution) {
             ASSERT_TRUE(foo);
             ASSERT_EQ("hello"s, greeting);
         }
-    )->execute(app_info, {"--foo", "hello"}, out);
+    )->execute(app_info, args, out);
 }
 
 TEST_F(CommandTest, Subcommand) {
     constexpr auto argument = "argument";
     constexpr auto cmd = "cmd";
+    constexpr auto args = std::array {cmd, argument};
+    const auto argv = commline::argv(args);
 
     auto root = command(
         "root",
@@ -68,13 +72,12 @@ TEST_F(CommandTest, Subcommand) {
 
     root->subcommand(std::move(child));
 
-    const auto argv = std::vector<std::string_view> {cmd, argument};
     auto it = argv.begin();
-    auto end = argv.end();
+    const auto end = argv.end();
 
     auto command = root->find(it, end);
 
-    command->execute(app_info, std::vector<std::string_view>(it, end), out);
+    command->execute(app_info, commline::argv(it, end), out);
 }
 
 TEST_F(CommandTest, Help) {
@@ -86,7 +89,7 @@ TEST_F(CommandTest, Help) {
         [](const commline::app& app) {
             FAIL() << "Command should not execute";
         }
-    )->execute(app_info, {"--help"}, out);
+    )->execute(app_info, help, out);
 
     const auto result = out.str();
 
@@ -125,7 +128,7 @@ TEST_F(CommandTest, HelpOptions) {
         ) {
             FAIL() << "Command should not execute";
         }
-    )->execute(app_info, {"--help"}, out);
+    )->execute(app_info, help, out);
 
     const auto result = out.str();
 
@@ -157,7 +160,7 @@ TEST_F(CommandTest, HelpArguments) {
         ) {
             FAIL() << "Command should not execute";
         }
-    )->execute(app_info, {"--help"}, out);
+    )->execute(app_info, help, out);
 
     const auto result = out.str();
 
@@ -187,7 +190,7 @@ TEST_F(CommandTest, HelpCommands) {
         [](const commline::app& app) { FAIL() << "Command should not execute"; }
     ));
 
-    root->execute(app_info, {"--help"}, out);
+    root->execute(app_info, help, out);
 
     const auto result = out.str();
 
@@ -238,7 +241,7 @@ TEST_F(CommandTest, HelpMixed) {
         [](const commline::app& app) { FAIL() << "Command should not execute"; }
     ));
 
-    root->execute(app_info, {"--help"}, out);
+    root->execute(app_info, help, out);
 
     const auto result = out.str();
 

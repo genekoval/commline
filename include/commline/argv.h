@@ -1,12 +1,8 @@
 #pragma once
 
-#include <string_view>
-#include <vector>
+#include <span>
 
 namespace commline {
-    using argv = std::vector<std::string_view>;
-
+    using argv = std::span<const char* const>;
     using iterator = argv::iterator;
-
-    auto collect(int argc, const char** argv) -> commline::argv;
 }
