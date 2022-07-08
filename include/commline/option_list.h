@@ -159,34 +159,39 @@ namespace commline {
             return get_values(std::index_sequence_for<Options...>());
         }
 
-        template <typename Callable>
-        auto parse(argv args, Callable handle_arg) -> void {
+        auto parse(argv args) -> std::vector<std::string_view> {
+            constexpr auto long_opt = std::string_view("--");
+            constexpr auto short_opt = std::string_view("-");
+
+            auto positional = std::vector<std::string_view>();
+
             auto first = args.begin();
             const auto last = args.end();
 
             while (first != last) {
-                constexpr auto l = std::string_view("--");
-                constexpr auto s = std::string_view("-");
-
                 const auto current = std::string_view(*(first++));
 
                 // A '--' by itself signifies the end of options.
                 // Everything that follows is an argument.
-                if (current == l) while (first != last) handle_arg(*(first++));
+                if (current == long_opt) {
+                    while (first != last) positional.emplace_back(*(first++));
+                }
                 // A '-' by itself is treated as an argument.
-                else if (current == s) handle_arg(current);
-                else if (current.starts_with(l)) handle_long_parameter(
-                    current.substr(l.size()),
+                else if (current == short_opt) positional.push_back(current);
+                else if (current.starts_with(long_opt)) handle_long_parameter(
+                    current.substr(long_opt.size()),
                     first,
                     last
                 );
-                else if (current.starts_with(s)) handle_short_parameter(
-                    current.substr(s.size()),
+                else if (current.starts_with(short_opt)) handle_short_parameter(
+                    current.substr(short_opt.size()),
                     first,
                     last
                 );
-                else handle_arg(current);
+                else positional.push_back(current);
             }
+
+            return positional;
         }
 
         auto print_help(std::ostream& out) const -> void {

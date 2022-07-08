@@ -9,9 +9,6 @@ class ParameterListTest : public testing::Test {
 protected:
     std::vector<const char*> argv;
     std::vector<std::string_view> arguments;
-    std::function<void(std::string_view)> add_arg = [this](auto arg) {
-        arguments.emplace_back(arg);
-    };
 
     template <typename ...Options>
     auto options(Options&&... opts) -> commline::option_list<Options...> {
@@ -25,9 +22,8 @@ protected:
         OptionList& list,
         std::initializer_list<const char*> args
     ) -> void {
-        arguments.clear();
         argv = args;
-        list.parse(argv, add_arg);
+        arguments = list.parse(argv);
     }
 };
 

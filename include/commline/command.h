@@ -110,16 +110,10 @@ namespace commline {
             argv argv,
             std::ostream& out
         ) -> void override {
-            auto positional = std::vector<std::string_view>();
             auto opts = option_list(std::move(options));
             auto args = positional_arguments(std::move(arguments));
 
-            opts.parse(
-                argv,
-                [&positional](std::string_view arg) {
-                    positional.push_back(arg);
-                }
-            );
+            const auto positional = opts.parse(argv);
 
             if (opts.help()) {
                 print_help(out, opts, args);
