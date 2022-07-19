@@ -123,10 +123,15 @@ namespace commline {
     };
 
     struct multiple_arguments : takes_argument<std::vector<std::string_view>> {
+        std::string delimiter;
+        bool discard_empty;
+
         multiple_arguments(
             std::initializer_list<std::string> aliases,
             std::string_view description,
-            std::string_view argument_name
+            std::string_view argument_name,
+            std::string_view delimiter,
+            bool discard_empty
         );
 
         auto set(std::string_view argument) -> void;
@@ -187,9 +192,19 @@ namespace commline {
         list(
             std::initializer_list<std::string> aliases,
             std::string_view description,
+            std::string_view argument_name,
+            std::string_view delimiter,
+            bool discard_empty = true
+        ) :
+            base(aliases, description, argument_name, delimiter, discard_empty)
+        {}
+
+        list(
+            std::initializer_list<std::string> aliases,
+            std::string_view description,
             std::string_view argument_name
         ) :
-            base(aliases, description, argument_name)
+            list(aliases, description, argument_name, std::string_view(), true)
         {}
 
         auto get() const -> type {

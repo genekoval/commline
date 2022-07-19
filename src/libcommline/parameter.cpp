@@ -1,5 +1,7 @@
 #include <commline/commline>
 
+#include <ext/string.h>
+
 namespace commline {
     describable::describable(std::string_view description) :
         description(description)
@@ -31,13 +33,25 @@ namespace commline {
     multiple_arguments::multiple_arguments(
         std::initializer_list<std::string> aliases,
         std::string_view description,
-        std::string_view argument_name
+        std::string_view argument_name,
+        std::string_view delimiter,
+        bool discard_empty
     ) :
-        takes_argument(aliases, description, argument_name)
+        takes_argument(aliases, description, argument_name),
+        delimiter(delimiter),
+        discard_empty(discard_empty)
     {}
 
     auto multiple_arguments::set(std::string_view argument) -> void {
-        value.push_back(argument);
+        if (delimiter.empty()) {
+            value.push_back(argument);
+            return;
+        }
+
+        for (const auto& token : ext::string_range(argument, delimiter)) {
+            if (discard_empty && token.empty()) continue;
+            value.push_back(token);
+        }
     }
 
     flag::flag(

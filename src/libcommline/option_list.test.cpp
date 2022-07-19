@@ -291,3 +291,99 @@ TEST_F(ParameterListTest, ListNoValue) {
         ASSERT_EQ("missing value for: include"s, ex.what());
     }
 }
+
+TEST_F(ParameterListTest, ListDelimiter) {
+    auto list = options(
+        commline::list<int>({"numbers"}, "", "", ",")
+    );
+
+    parse(list, {"--numbers=10", "--numbers=100,-8,40"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(4, result.size());
+    EXPECT_EQ(10, result.at(0));
+    EXPECT_EQ(100, result.at(1));
+    EXPECT_EQ(-8, result.at(2));
+    EXPECT_EQ(40, result.at(3));
+}
+
+TEST_F(ParameterListTest, ListDelimiterLeading) {
+    auto list = options(
+        commline::list<int>({"numbers"}, "", "", ",")
+    );
+
+    parse(list, {"--numbers=,7,9"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(2, result.size());
+    EXPECT_EQ(7, result.at(0));
+    EXPECT_EQ(9, result.at(1));
+}
+
+TEST_F(ParameterListTest, ListDelimiterTrailing) {
+    auto list = options(
+        commline::list<int>({"numbers"}, "", "", ",")
+    );
+
+    parse(list, {"--numbers=7,9,"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(2, result.size());
+    EXPECT_EQ(7, result.at(0));
+    EXPECT_EQ(9, result.at(1));
+}
+
+TEST_F(ParameterListTest, ListDelimiterEmptyValue) {
+    auto list = options(
+        commline::list<int>({"numbers"}, "", "", ",")
+    );
+
+    parse(list, {"--numbers=7,,9"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(2, result.size());
+    EXPECT_EQ(7, result.at(0));
+    EXPECT_EQ(9, result.at(1));
+}
+
+TEST_F(ParameterListTest, ListDelimiterKeepEmpty) {
+    auto list = options(
+        commline::list<std::string_view>({"numbers"}, "", "", ",", false)
+    );
+
+    parse(list, {"--numbers=one,,three"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(3, result.size());
+    EXPECT_EQ("one", result.at(0));
+    EXPECT_EQ("", result.at(1));
+    EXPECT_EQ("three", result.at(2));
+}
+
+TEST_F(ParameterListTest, ListDelimiterKeepEmptyLeading) {
+    auto list = options(
+        commline::list<std::string_view>({"numbers"}, "", "", ",", false)
+    );
+
+    parse(list, {"--numbers=,two,three"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(3, result.size());
+    EXPECT_EQ("", result.at(0));
+    EXPECT_EQ("two", result.at(1));
+    EXPECT_EQ("three", result.at(2));
+}
+
+TEST_F(ParameterListTest, ListDelimiterKeepEmptyTrailing) {
+    auto list = options(
+        commline::list<std::string_view>({"numbers"}, "", "", ",", false)
+    );
+
+    parse(list, {"--numbers=one,two,"});
+    const auto result = list.get<0>();
+
+    ASSERT_EQ(3, result.size());
+    EXPECT_EQ("one", result.at(0));
+    EXPECT_EQ("two", result.at(1));
+    EXPECT_EQ("", result.at(2));
+}
