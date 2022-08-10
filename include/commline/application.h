@@ -11,7 +11,7 @@ namespace commline {
     auto print_error(const std::exception& ex) -> void;
 
     template <typename Callable, typename Options, typename Arguments>
-    class app_impl : public command_impl<Callable, Options, Arguments> {
+    class app_impl final : public command_impl<Callable, Options, Arguments> {
         error_handler_t error_handler = &print_error;
     public:
         const std::string version;

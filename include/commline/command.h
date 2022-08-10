@@ -37,6 +37,8 @@ namespace commline {
             name(name)
         {}
 
+        virtual ~command_node() {}
+
         virtual auto execute(
             const app& context,
             argv args,
@@ -104,6 +106,8 @@ namespace commline {
             options(std::move(options)),
             arguments(std::move(arguments))
         {}
+
+        virtual ~command_impl() {}
 
         auto execute(
             const app& context,
