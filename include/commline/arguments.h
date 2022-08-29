@@ -99,7 +99,7 @@ namespace commline {
         using result_t = std::tuple<typename Arguments::type...>;
 
         template <std::size_t N>
-        using type = std::tuple_element_t<N, tuple_t>::type;
+        using type = typename std::tuple_element_t<N, tuple_t>::type;
 
         static constexpr auto size_v = std::tuple_size_v<tuple_t>;
 

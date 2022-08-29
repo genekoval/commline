@@ -29,7 +29,7 @@ namespace commline {
 
         template <std::size_t N>
         using type =
-            std::tuple_element<N, tuple_type>::type::type;
+            typename std::tuple_element<N, tuple_type>::type::type;
 
         static constexpr auto size_v = std::tuple_size_v<tuple_type>;
 
