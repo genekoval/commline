@@ -37,7 +37,7 @@ TEST_F(ApplicationTest, Create) {
         options(),
         arguments(),
         [this](const commline::app& app) { assert_app_info(app); }
-    ).run(argc, argv));
+    ).run(argc, const_cast<char**>(argv)));
 }
 
 TEST_F(ApplicationTest, MulipleCommands) {
@@ -78,5 +78,5 @@ TEST_F(ApplicationTest, MulipleCommands) {
         }
     ));
 
-    ASSERT_EQ(0, app.run(argc, argv));
+    ASSERT_EQ(0, app.run(argc, const_cast<char**>(argv)));
 }

@@ -40,7 +40,7 @@ namespace commline {
 
         auto run(
             int argc,
-            const char** argv,
+            char** argv,
             std::ostream& out = std::cout
         ) -> int {
             const auto args = commline::argv(argv, argc);
