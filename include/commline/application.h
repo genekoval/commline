@@ -6,9 +6,9 @@
 #include <iostream>
 
 namespace commline {
-    using error_handler_t = auto (*)(const std::exception& ex) -> void;
+    using error_handler_t = auto (*)(std::exception_ptr eptr) -> void;
 
-    auto print_error(const std::exception& ex) -> void;
+    auto print_error(std::exception_ptr eptr) -> void;
 
     template <typename Callable, typename Options, typename Arguments>
     class app_impl final : public command_impl<Callable, Options, Arguments> {
@@ -63,11 +63,11 @@ namespace commline {
                 );
             }
             catch (const std::system_error& ex) {
-                error_handler(ex);
+                error_handler(std::current_exception());
                 return ex.code().value();
             }
-            catch (const std::exception& ex) {
-                error_handler(ex);
+            catch (...) {
+                error_handler(std::current_exception());
                 return EXIT_FAILURE;
             }
 
