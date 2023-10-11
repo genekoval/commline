@@ -19,8 +19,7 @@ namespace commline {
     }
 
     optional_argument::optional_argument(std::string_view name) :
-        named_argument(name)
-    {}
+        named_argument(name) {}
 
     auto optional_argument::print_help(std::ostream& out) const -> void {
         out << "[";
@@ -29,12 +28,10 @@ namespace commline {
     }
 
     required_argument::required_argument(std::string_view name) :
-        named_argument(name)
-    {}
+        named_argument(name) {}
 
     argument_list::argument_list(std::string_view name) :
-        named_argument(name)
-    {}
+        named_argument(name) {}
 
     auto argument_list::print_help(std::ostream& out) const -> void {
         named_argument::print_help(out);

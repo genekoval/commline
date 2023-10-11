@@ -11,9 +11,7 @@
 namespace commline {
     template <typename T>
     struct parser {
-        static auto parse(std::string_view argument) -> T {
-            return argument;
-        }
+        static auto parse(std::string_view argument) -> T { return argument; }
     };
 
     template <>

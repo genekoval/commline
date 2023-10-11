@@ -2,8 +2,8 @@
 
 #include <commline/command.h>
 
-#include <system_error>
 #include <iostream>
+#include <system_error>
 
 namespace commline {
     using error_handler_t = auto (*)(std::exception_ptr eptr) -> void;
@@ -31,18 +31,13 @@ namespace commline {
                 std::move(options),
                 std::move(arguments)
             ),
-            version(version)
-        {}
+            version(version) {}
 
         auto on_error(error_handler_t handler) -> void {
             error_handler = handler;
         }
 
-        auto run(
-            int argc,
-            char** argv,
-            std::ostream& out = std::cout
-        ) -> int {
+        auto run(int argc, char** argv, std::ostream& out = std::cout) -> int {
             const auto args = commline::argv(argv, argc);
 
             auto first = args.begin();
@@ -52,12 +47,8 @@ namespace commline {
             auto cmd = this->find(first, last);
 
             try {
-                cmd->execute({
-                        this->name,
-                        version,
-                        this->description,
-                        argv0
-                    },
+                cmd->execute(
+                    {this->name, version, this->description, argv0},
                     commline::argv(first, last),
                     out
                 );

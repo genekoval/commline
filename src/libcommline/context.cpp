@@ -2,10 +2,6 @@
 
 namespace commline {
     auto print_version(std::ostream& os, const app& a) -> void {
-        os
-            << a.name
-            << ' '
-            << a.version
-            << '\n';
+        os << a.name << ' ' << a.version << '\n';
     }
 }

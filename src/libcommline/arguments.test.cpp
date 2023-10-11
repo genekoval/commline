@@ -11,10 +11,9 @@ using commline::variadic;
 
 class ArgumentTest : public testing::Test {
 protected:
-    template <typename ...Arguments>
-    auto arguments(
-        Arguments&&... args
-    ) -> commline::positional_arguments<Arguments...> {
+    template <typename... Arguments>
+    auto arguments(Arguments&&... args)
+        -> commline::positional_arguments<Arguments...> {
         return commline::positional_arguments<Arguments...>(
             commline::arguments(std::forward<Arguments>(args)...)
         );
@@ -37,10 +36,7 @@ TEST_F(ArgumentTest, RequiredArgumentMissing) {
         FAIL() << "Parsing should have failed";
     }
     catch (const cli_error& ex) {
-        ASSERT_EQ(
-            "not enough arguments: missing value for: hello"s,
-            ex.what()
-        );
+        ASSERT_EQ("not enough arguments: missing value for: hello"s, ex.what());
     }
 }
 
@@ -88,10 +84,8 @@ TEST_F(ArgumentTest, VariadicMultiple) {
 
 TEST_F(ArgumentTest, VariadicLeading) {
     constexpr auto args = std::array {"2"sv, "4"sv, "8"sv, "foo"sv};
-    auto parser = arguments(
-        variadic<int>("numbers"),
-        required<std::string_view>("word")
-    );
+    auto parser =
+        arguments(variadic<int>("numbers"), required<std::string_view>("word"));
     const auto [numbers, word] = parser.parse(args);
 
     ASSERT_EQ(3, numbers.size());
@@ -102,13 +96,8 @@ TEST_F(ArgumentTest, VariadicLeading) {
 }
 
 TEST_F(ArgumentTest, VariadicCenter) {
-    constexpr auto args = std::array {
-        "foo"sv,
-        "one"sv,
-        "two"sv,
-        "three"sv,
-        "bar"sv
-    };
+    constexpr auto args =
+        std::array {"foo"sv, "one"sv, "two"sv, "three"sv, "bar"sv};
 
     auto parser = arguments(
         required<std::string_view>("head"),
@@ -126,17 +115,10 @@ TEST_F(ArgumentTest, VariadicCenter) {
 }
 
 TEST_F(ArgumentTest, VariadicTrailing) {
-    constexpr auto args = std::array {
-        "foo"sv,
-        "5"sv,
-        "10"sv,
-        "15"sv
-    };
+    constexpr auto args = std::array {"foo"sv, "5"sv, "10"sv, "15"sv};
 
-    auto parser = arguments(
-        required<std::string_view>("word"),
-        variadic<int>("numbers")
-    );
+    auto parser =
+        arguments(required<std::string_view>("word"), variadic<int>("numbers"));
     const auto [word, numbers] = parser.parse(args);
 
     ASSERT_EQ("foo", word);

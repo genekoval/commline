@@ -28,23 +28,24 @@ protected:
 
 TEST_F(ApplicationTest, Create) {
     const int argc = 1;
-    const char* argv[argc] = { "./app" };
+    const char* argv[argc] = {"./app"};
 
-    ASSERT_EQ(0, application(
-        name,
-        version,
-        description,
-        options(),
-        arguments(),
-        [this](const commline::app& app) { assert_app_info(app); }
-    ).run(argc, const_cast<char**>(argv)));
+    ASSERT_EQ(
+        0,
+        application(
+            name,
+            version,
+            description,
+            options(),
+            arguments(),
+            [this](const commline::app& app) { assert_app_info(app); }
+        ).run(argc, const_cast<char**>(argv))
+    );
 }
 
 TEST_F(ApplicationTest, MulipleCommands) {
     const int argc = 5;
-    const char* argv[argc] = {
-        "./app", "start", "--fork", "--threads", "4"
-    };
+    const char* argv[argc] = {"./app", "start", "--fork", "--threads", "4"};
 
     auto app = application(
         name,
@@ -59,15 +60,8 @@ TEST_F(ApplicationTest, MulipleCommands) {
         "start",
         "Start the server.",
         options(
-            flag(
-                {"fork"},
-                "Fork the process."
-            ),
-            option<int>(
-                {"threads"},
-                "Number of threads.",
-                "count"
-            )
+            flag({"fork"}, "Fork the process."),
+            option<int>({"threads"}, "Number of threads.", "count")
         ),
         arguments(),
         [this](const commline::app& app, bool fork, int threads) {

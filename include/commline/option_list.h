@@ -11,25 +11,22 @@
 #include <variant>
 
 namespace commline {
-    template <typename ...Ts>
+    template <typename... Ts>
     struct overloaded : Ts... {
         using Ts::operator()...;
     };
 
-    template <typename ...Ts> overloaded(Ts...) -> overloaded<Ts...>;
+    template <typename... Ts>
+    overloaded(Ts...) -> overloaded<Ts...>;
 
-    template <typename ...Options>
+    template <typename... Options>
     class option_list {
         using tuple_type = std::tuple<Options...>;
-        using variant_type = std::variant<
-            no_argument*,
-            single_argument*,
-            multiple_arguments*
-        >;
+        using variant_type =
+            std::variant<no_argument*, single_argument*, multiple_arguments*>;
 
         template <std::size_t N>
-        using type =
-            typename std::tuple_element<N, tuple_type>::type::type;
+        using type = typename std::tuple_element<N, tuple_type>::type::type;
 
         static constexpr auto size_v = std::tuple_size_v<tuple_type>;
 
@@ -43,22 +40,24 @@ namespace commline {
         std::unordered_map<std::string_view, variant_type> option_map;
 
         auto add(variant_type&& var) -> void {
-            std::visit([&](auto* opt) {
-                for (const auto& alias : opt->aliases) {
-                    option_map[alias] = var;
-                }
-            }, var);
+            std::visit(
+                [&](auto* opt) {
+                    for (const auto& alias : opt->aliases) {
+                        option_map[alias] = var;
+                    }
+                },
+                var
+            );
         }
 
-        template <std::size_t ...I>
+        template <std::size_t... I>
         auto generate_map(std::index_sequence<I...>) -> void {
             (add(&(std::get<I>(opts).base)), ...);
         }
 
-        template <std::size_t ...I>
-        auto get_values(
-            std::index_sequence<I...>
-        ) const -> std::tuple<typename Options::type...> {
+        template <std::size_t... I>
+        auto get_values(std::index_sequence<I...>) const
+            -> std::tuple<typename Options::type...> {
             return std::make_tuple(std::get<I>(opts).get()...);
         }
 
@@ -78,33 +77,34 @@ namespace commline {
         ) -> void {
             const auto equals_sign = token.find("=");
             const auto has_equals_sign = equals_sign != std::string_view::npos;
-            const auto alias = has_equals_sign ?
-                token.substr(0, equals_sign) : token;
+            const auto alias =
+                has_equals_sign ? token.substr(0, equals_sign) : token;
 
-            std::visit(overloaded {
-                [&](no_argument* opt) {
-                    if (has_equals_sign) {
-                        throw cli_error(
-                            "option '" +
-                            std::string(alias) +
-                            "' does not support values"
-                        );
-                    }
+            std::visit(
+                overloaded {
+                    [&](no_argument* opt) {
+                        if (has_equals_sign) {
+                            throw cli_error(
+                                "option '" + std::string(alias) +
+                                "' does not support values"
+                            );
+                        }
 
-                    opt->set();
-                },
-                [&](auto* opt) {
-                    if (has_equals_sign) {
-                        if (equals_sign == token.size() - 1)
-                            missing_value(alias);
-                        opt->set(token.substr(equals_sign + 1));
-                        return;
-                    }
+                        opt->set();
+                    },
+                    [&](auto* opt) {
+                        if (has_equals_sign) {
+                            if (equals_sign == token.size() - 1)
+                                missing_value(alias);
+                            opt->set(token.substr(equals_sign + 1));
+                            return;
+                        }
 
-                    if (first == last) missing_value(alias);
-                    opt->set(*first++);
-                }
-            }, find(alias));
+                        if (first == last) missing_value(alias);
+                        opt->set(*first++);
+                    }},
+                find(alias)
+            );
         }
 
         auto handle_short_parameter(
@@ -118,30 +118,32 @@ namespace commline {
             while (it != end) {
                 const auto alias = std::string_view(it++, 1);
 
-                std::visit(overloaded {
-                    [&](no_argument* opt) { opt->set(); },
-                    [&](auto* opt) {
-                        // The parameter requires a value.
-                        // The option value is the next arg after the
-                        // sequence of short options. If there are more
-                        // options in the sequence or there are no more
-                        // args after the sequence, the value is missing.
-                        if (it != end || first == last) missing_value(alias);
-                        opt->set(*first++);
-                    }
-                }, find(alias));
+                std::visit(
+                    overloaded {
+                        [&](no_argument* opt) { opt->set(); },
+                        [&](auto* opt) {
+                            // The parameter requires a value.
+                            // The option value is the next arg after the
+                            // sequence of short options. If there are more
+                            // options in the sequence or there are no more
+                            // args after the sequence, the value is missing.
+                            if (it != end || first == last)
+                                missing_value(alias);
+                            opt->set(*first++);
+                        }},
+                    find(alias)
+                );
             }
         }
 
-        template <std::size_t ...I>
+        template <std::size_t... I>
         auto print(std::ostream& out, std::index_sequence<I...>) const -> void {
             (std::get<I>(opts).base.print_help(out), ...);
         }
     public:
         option_list(tuple_type&& opts) :
             help_flag({"help", "?"}, "Print information about a command"),
-            opts(std::move(opts))
-        {
+            opts(std::move(opts)) {
             add(&(help_flag.base));
             generate_map(std::index_sequence_for<Options...>());
         }
@@ -151,9 +153,7 @@ namespace commline {
             return std::get<N>(opts).get();
         }
 
-        auto help() -> bool {
-            return help_flag.get();
-        }
+        auto help() -> bool { return help_flag.get(); }
 
         auto extract() const -> std::tuple<typename Options::type...> {
             return get_values(std::index_sequence_for<Options...>());
@@ -178,16 +178,18 @@ namespace commline {
                 }
                 // A '-' by itself is treated as an argument.
                 else if (current == short_opt) positional.push_back(current);
-                else if (current.starts_with(long_opt)) handle_long_parameter(
-                    current.substr(long_opt.size()),
-                    first,
-                    last
-                );
-                else if (current.starts_with(short_opt)) handle_short_parameter(
-                    current.substr(short_opt.size()),
-                    first,
-                    last
-                );
+                else if (current.starts_with(long_opt))
+                    handle_long_parameter(
+                        current.substr(long_opt.size()),
+                        first,
+                        last
+                    );
+                else if (current.starts_with(short_opt))
+                    handle_short_parameter(
+                        current.substr(short_opt.size()),
+                        first,
+                        last
+                    );
                 else positional.push_back(current);
             }
 
@@ -201,12 +203,10 @@ namespace commline {
             }
         }
 
-        constexpr auto size() const -> std::size_t {
-            return size_v;
-        }
+        constexpr auto size() const -> std::size_t { return size_v; }
     };
 
-    template <typename ...Options>
+    template <typename... Options>
     auto options(Options&&... opts) -> std::tuple<Options...> {
         return std::make_tuple(std::move(opts)...);
     }

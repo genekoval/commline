@@ -2,23 +2,19 @@
 
 #include <commline/command.h>
 
-using commline::required;
 using commline::arguments;
 using commline::command;
 using commline::flag;
 using commline::option;
 using commline::options;
+using commline::required;
 using commline::variadic;
 
 class CommandTest : public testing::Test {
 protected:
     static constexpr auto description = "a test command"sv;
-    static constexpr auto app_info = commline::app {
-        "testapp",
-        "0.0.0",
-        "Unit tests.",
-        "/app"
-    };
+    static constexpr auto app_info =
+        commline::app {"testapp", "0.0.0", "Unit tests.", "/app"};
     static constexpr auto help = std::array {"--help"};
 
     std::ostringstream out;
@@ -55,9 +51,7 @@ TEST_F(CommandTest, Subcommand) {
         description,
         options(),
         arguments(),
-        [](const commline::app& app) {
-            FAIL() << "Command should not run.";
-        }
+        [](const commline::app& app) { FAIL() << "Command should not run."; }
     );
 
     auto child = commline::command(
@@ -86,19 +80,17 @@ TEST_F(CommandTest, Help) {
         description,
         options(),
         arguments(),
-        [](const commline::app& app) {
-            FAIL() << "Command should not execute";
-        }
+        [](const commline::app& app) { FAIL() << "Command should not execute"; }
     )->execute(app_info, help, out);
 
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(a test command
+        R"(a test command
 
 Usage: foo
 )",
-    result
+        result
     );
 }
 
@@ -120,12 +112,10 @@ TEST_F(CommandTest, HelpOptions) {
             )
         ),
         arguments(),
-        [](
-            const commline::app& app,
-            bool bar,
-            std::string_view hello,
-            std::string_view long_opt
-        ) {
+        [](const commline::app& app,
+           bool bar,
+           std::string_view hello,
+           std::string_view long_opt) {
             FAIL() << "Command should not execute";
         }
     )->execute(app_info, help, out);
@@ -133,7 +123,7 @@ TEST_F(CommandTest, HelpOptions) {
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(a test command
+        R"(a test command
 
 Usage: foo [options]
 
@@ -153,11 +143,9 @@ TEST_F(CommandTest, HelpArguments) {
         description,
         options(),
         arguments(required<std::string_view>("bar"), variadic<int>("baz")),
-        [](
-            const commline::app& app,
-            std::string_view bar,
-            const std::vector<int>& baz
-        ) {
+        [](const commline::app& app,
+           std::string_view bar,
+           const std::vector<int>& baz) {
             FAIL() << "Command should not execute";
         }
     )->execute(app_info, help, out);
@@ -165,7 +153,7 @@ TEST_F(CommandTest, HelpArguments) {
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(a test command
+        R"(a test command
 
 Usage: foo BAR BAZ...
 )",
@@ -195,7 +183,7 @@ TEST_F(CommandTest, HelpCommands) {
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(a test command
+        R"(a test command
 
 Usage: foo
 
@@ -218,19 +206,12 @@ TEST_F(CommandTest, HelpMixed) {
                 "world"
             )
         ),
-        arguments(
-            variadic<std::string_view>("baz"),
-            required<int>("number")
-        ),
-        [](
-            const commline::app& app,
-            bool bar,
-            std::string_view hello,
-            const std::vector<std::string_view>& baz,
-            int number
-        ) {
-            FAIL() << "Command should not execute";
-        }
+        arguments(variadic<std::string_view>("baz"), required<int>("number")),
+        [](const commline::app& app,
+           bool bar,
+           std::string_view hello,
+           const std::vector<std::string_view>& baz,
+           int number) { FAIL() << "Command should not execute"; }
     );
 
     root->subcommand(command(
@@ -246,7 +227,7 @@ TEST_F(CommandTest, HelpMixed) {
     const auto result = out.str();
 
     ASSERT_EQ(
-R"(a test command
+        R"(a test command
 
 Usage: foo [options] [--] BAZ... NUMBER
 

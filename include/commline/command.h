@@ -7,8 +7,8 @@
 
 #include <array>
 #include <functional>
-#include <memory>
 #include <map>
+#include <memory>
 
 namespace commline {
     class command_node : public describable {
@@ -34,16 +34,12 @@ namespace commline {
 
         command_node(std::string_view name, std::string_view description) :
             describable(description),
-            name(name)
-        {}
+            name(name) {}
 
         virtual ~command_node() {}
 
-        virtual auto execute(
-            const app& context,
-            argv args,
-            std::ostream& out
-        ) -> void = 0;
+        virtual auto execute(const app& context, argv args, std::ostream& out)
+            -> void = 0;
 
         auto find(iterator& first, iterator last) -> command_node* {
             if (first != last) {
@@ -58,10 +54,7 @@ namespace commline {
         }
 
         auto subcommand(std::unique_ptr<command_node>&& node) -> command_node* {
-            auto result = commands.insert({
-                node->name,
-                std::move(node)
-            });
+            auto result = commands.insert({node->name, std::move(node)});
 
             return result.first->second.get();
         }
@@ -74,12 +67,10 @@ namespace commline {
         Arguments arguments;
 
         template <typename Opts, typename Args>
-        auto print_help(
-            std::ostream& out,
-            const Opts& opts,
-            const Args& args
-        ) const -> void {
-            out << description << "\n\n" << "Usage: " << name;
+        auto print_help(std::ostream& out, const Opts& opts, const Args& args)
+            const -> void {
+            out << description << "\n\n"
+                << "Usage: " << name;
 
             if (opts.size() > 0) {
                 out << " [options]";
@@ -104,16 +95,12 @@ namespace commline {
             command_node(name, description),
             fn(std::move(fn)),
             options(std::move(options)),
-            arguments(std::move(arguments))
-        {}
+            arguments(std::move(arguments)) {}
 
         virtual ~command_impl() {}
 
-        auto execute(
-            const app& context,
-            argv argv,
-            std::ostream& out
-        ) -> void override {
+        auto execute(const app& context, argv argv, std::ostream& out)
+            -> void override {
             auto opts = option_list(std::move(options));
             auto args = positional_arguments(std::move(arguments));
 
@@ -124,11 +111,14 @@ namespace commline {
                 return;
             }
 
-            std::apply(fn, std::tuple_cat(
-                std::make_tuple(context),
-                opts.extract(),
-                args.parse(positional)
-            ));
+            std::apply(
+                fn,
+                std::tuple_cat(
+                    std::make_tuple(context),
+                    opts.extract(),
+                    args.parse(positional)
+                )
+            );
         }
     };
 
@@ -140,11 +130,7 @@ namespace commline {
         Arguments&& arguments,
         Callable&& fn
     ) -> std::unique_ptr<command_node> {
-        return std::make_unique<command_impl<
-            Callable,
-            Options,
-            Arguments
-        >>(
+        return std::make_unique<command_impl<Callable, Options, Arguments>>(
             name,
             description,
             std::move(fn),

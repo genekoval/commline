@@ -26,7 +26,7 @@ namespace commline {
         required_argument(std::string_view name);
     };
 
-    struct optional_argument: named_argument {
+    struct optional_argument : named_argument {
         std::optional<std::string_view> value;
 
         optional_argument(std::string_view name);
@@ -50,9 +50,7 @@ namespace commline {
 
         required(std::string_view name) : base(name) {}
 
-        auto value() const -> type {
-            return parser<type>::parse(base.value);
-        }
+        auto value() const -> type { return parser<type>::parse(base.value); }
     };
 
     template <typename T>
@@ -88,14 +86,11 @@ namespace commline {
         }
     };
 
-    template <typename ...Arguments>
+    template <typename... Arguments>
     class positional_arguments {
         using tuple_t = std::tuple<Arguments...>;
-        using var_t = std::variant<
-            required_argument*,
-            argument_list*,
-            optional_argument*
-        >;
+        using var_t = std::
+            variant<required_argument*, argument_list*, optional_argument*>;
         using result_t = std::tuple<typename Arguments::type...>;
 
         template <std::size_t N>
@@ -111,12 +106,12 @@ namespace commline {
         tuple_t arguments;
         std::array<var_t, size_v> bases;
 
-        template <std::size_t ...I>
+        template <std::size_t... I>
         auto generate_bases(std::index_sequence<I...>) -> void {
             ((bases[I] = &(std::get<I>(arguments).base)), ...);
         }
 
-        template <std::size_t ...I>
+        template <std::size_t... I>
         auto get_values(std::index_sequence<I...>) const -> result_t {
             return std::make_tuple(std::get<I>(arguments).value()...);
         }
@@ -147,8 +142,7 @@ namespace commline {
         }
     public:
         positional_arguments(tuple_t&& arguments) :
-            arguments(std::move(arguments))
-        {
+            arguments(std::move(arguments)) {
             generate_bases(std::index_sequence_for<Arguments...>());
         }
 
@@ -178,10 +172,7 @@ namespace commline {
                     read_reverse(args_begin, args_end, bases_begin, bases_end);
 
                     auto& base = **arg;
-                    base.values = std::span(
-                        args_begin,
-                        args_end
-                    );
+                    base.values = std::span(args_begin, args_end);
 
                     std::advance(args_begin, base.values.size());
                 }
@@ -200,18 +191,14 @@ namespace commline {
             for (const auto& base : bases) {
                 out << " ";
 
-                std::visit([&out](auto* arg) {
-                    arg->print_help(out);
-                }, base);
+                std::visit([&out](auto* arg) { arg->print_help(out); }, base);
             }
         }
 
-        constexpr auto size() const -> std::size_t {
-            return size_v;
-        }
+        constexpr auto size() const -> std::size_t { return size_v; }
     };
 
-    template <typename ...Arguments>
+    template <typename... Arguments>
     auto arguments(Arguments&&... args) -> std::tuple<Arguments...> {
         return std::make_tuple(std::move(args)...);
     }

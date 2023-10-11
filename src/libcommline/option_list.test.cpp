@@ -10,18 +10,16 @@ protected:
     std::vector<const char*> argv;
     std::vector<std::string_view> arguments;
 
-    template <typename ...Options>
+    template <typename... Options>
     auto options(Options&&... opts) -> commline::option_list<Options...> {
         return commline::option_list<Options...>(
             commline::options(std::forward<Options>(opts)...)
         );
     }
 
-    template <typename OptionList, typename ...Args>
-    auto parse(
-        OptionList& list,
-        std::initializer_list<const char*> args
-    ) -> void {
+    template <typename OptionList, typename... Args>
+    auto parse(OptionList& list, std::initializer_list<const char*> args)
+        -> void {
         argv = args;
         arguments = list.parse(argv);
     }
@@ -96,13 +94,13 @@ TEST_F(ParameterListTest, MixedParams) {
 
     parse(list, {hello, "--hello", "-v", world, "-abc"});
 
-    for (auto value : {
-        list.get<0>(),
-        list.get<1>(),
-        list.get<2>(),
-        list.get<3>(),
-        list.get<4>()
-    }) ASSERT_TRUE(value);
+    for (auto value :
+         {list.get<0>(),
+          list.get<1>(),
+          list.get<2>(),
+          list.get<3>(),
+          list.get<4>()})
+        ASSERT_TRUE(value);
 
     ASSERT_EQ(2, arguments.size());
     ASSERT_EQ(hello, arguments[0]);
@@ -110,10 +108,8 @@ TEST_F(ParameterListTest, MixedParams) {
 }
 
 TEST_F(ParameterListTest, EndOfOptions) {
-    auto list = options(
-        commline::flag({"hello"}, ""),
-        commline::flag({"version"}, "")
-    );
+    auto list =
+        options(commline::flag({"hello"}, ""), commline::flag({"version"}, ""));
     parse(list, {"--hello", "--", "--version", "-world"});
 
     ASSERT_TRUE(list.get<0>());
@@ -244,9 +240,7 @@ TEST_F(ParameterListTest, SequenceValue) {
 }
 
 TEST_F(ParameterListTest, EmptyList) {
-    auto list = options(
-        commline::list<std::string_view>({"include"}, "", "")
-    );
+    auto list = options(commline::list<std::string_view>({"include"}, "", ""));
 
     parse(list, {""});
 
@@ -254,9 +248,7 @@ TEST_F(ParameterListTest, EmptyList) {
 }
 
 TEST_F(ParameterListTest, ListOne) {
-    auto list = options(
-        commline::list<std::string_view>({"include"}, "", "")
-    );
+    auto list = options(commline::list<std::string_view>({"include"}, "", ""));
 
     parse(list, {"--include", "foo"});
     const auto result = list.get<0>();
@@ -266,9 +258,7 @@ TEST_F(ParameterListTest, ListOne) {
 }
 
 TEST_F(ParameterListTest, ListMany) {
-    auto list = options(
-        commline::list<std::string_view>({"include"}, "", "")
-    );
+    auto list = options(commline::list<std::string_view>({"include"}, "", ""));
 
     parse(list, {"--include=foo", "--include=bar"});
     const auto result = list.get<0>();
@@ -279,9 +269,7 @@ TEST_F(ParameterListTest, ListMany) {
 }
 
 TEST_F(ParameterListTest, ListNoValue) {
-    auto list = options(
-        commline::list<std::string_view>({"include"}, "", "")
-    );
+    auto list = options(commline::list<std::string_view>({"include"}, "", ""));
 
     try {
         parse(list, {"--include"});
@@ -293,9 +281,7 @@ TEST_F(ParameterListTest, ListNoValue) {
 }
 
 TEST_F(ParameterListTest, ListDelimiter) {
-    auto list = options(
-        commline::list<int>({"numbers"}, "", "", ",")
-    );
+    auto list = options(commline::list<int>({"numbers"}, "", "", ","));
 
     parse(list, {"--numbers=10", "--numbers=100,-8,40"});
     const auto result = list.get<0>();
@@ -308,9 +294,7 @@ TEST_F(ParameterListTest, ListDelimiter) {
 }
 
 TEST_F(ParameterListTest, ListDelimiterLeading) {
-    auto list = options(
-        commline::list<int>({"numbers"}, "", "", ",")
-    );
+    auto list = options(commline::list<int>({"numbers"}, "", "", ","));
 
     parse(list, {"--numbers=,7,9"});
     const auto result = list.get<0>();
@@ -321,9 +305,7 @@ TEST_F(ParameterListTest, ListDelimiterLeading) {
 }
 
 TEST_F(ParameterListTest, ListDelimiterTrailing) {
-    auto list = options(
-        commline::list<int>({"numbers"}, "", "", ",")
-    );
+    auto list = options(commline::list<int>({"numbers"}, "", "", ","));
 
     parse(list, {"--numbers=7,9,"});
     const auto result = list.get<0>();
@@ -334,9 +316,7 @@ TEST_F(ParameterListTest, ListDelimiterTrailing) {
 }
 
 TEST_F(ParameterListTest, ListDelimiterEmptyValue) {
-    auto list = options(
-        commline::list<int>({"numbers"}, "", "", ",")
-    );
+    auto list = options(commline::list<int>({"numbers"}, "", "", ","));
 
     parse(list, {"--numbers=7,,9"});
     const auto result = list.get<0>();

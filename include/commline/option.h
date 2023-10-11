@@ -27,8 +27,7 @@ namespace commline {
             std::string_view description
         ) :
             describable(description),
-            aliases(aliases)
-        {}
+            aliases(aliases) {}
     public:
         using type = T;
 
@@ -104,8 +103,7 @@ namespace commline {
             std::string_view argument_name
         ) :
             option_base<T>(aliases, description),
-            argument_name(argument_name)
-        {}
+            argument_name(argument_name) {}
 
         auto print_help(std::ostream& out) const -> void {
             option_base<T>::print_help(out, argument_name);
@@ -163,8 +161,7 @@ namespace commline {
             std::string_view argument_name
         ) :
             base(aliases, description, argument_name),
-            default_value(T())
-        {}
+            default_value(T()) {}
 
         option(
             std::initializer_list<std::string> aliases,
@@ -173,8 +170,7 @@ namespace commline {
             T&& default_value
         ) :
             base(aliases, description, argument_name),
-            default_value(std::move(default_value))
-        {}
+            default_value(std::move(default_value)) {}
 
         auto get() const -> T {
             auto value = base.get();
@@ -196,16 +192,26 @@ namespace commline {
             std::string_view delimiter,
             bool discard_empty = true
         ) :
-            base(aliases, description, argument_name, delimiter, discard_empty)
-        {}
+            base(
+                aliases,
+                description,
+                argument_name,
+                delimiter,
+                discard_empty
+            ) {}
 
         list(
             std::initializer_list<std::string> aliases,
             std::string_view description,
             std::string_view argument_name
         ) :
-            list(aliases, description, argument_name, std::string_view(), true)
-        {}
+            list(
+                aliases,
+                description,
+                argument_name,
+                std::string_view(),
+                true
+            ) {}
 
         auto get() const -> type {
             const auto value = base.get();
