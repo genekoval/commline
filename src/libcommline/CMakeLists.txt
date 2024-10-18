@@ -1,0 +1,19 @@
+target_sources(commline
+    PRIVATE
+        application.cpp
+        arguments.cpp
+        context.cpp
+        parameter.cpp
+        parser.cpp
+        print.cpp
+)
+
+if(PROJECT_TESTING)
+    target_sources(commline.test
+        PRIVATE
+            application.test.cpp
+            arguments.test.cpp
+            command.test.cpp
+            option_list.test.cpp
+    )
+endif()
